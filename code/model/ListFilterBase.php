@@ -1,0 +1,216 @@
+<?php
+
+class ListFilterBase extends DataObject {
+	private static $db = array(
+		'Title' => 'Varchar(255)',
+		'Sort'	=> 'Int',
+	);
+
+	private static $has_one = array(
+		'Parent' => 'ListFilterSet',
+	);
+
+	private static $summary_fields = array(
+		'singular_name' => 'Type',
+		'Title' => 'Title',
+		'ContextSummaryField' => 'Context',
+	);
+
+	private static $default_sort = 'Sort';
+
+	/**
+	 * Hide from 'GridFieldAddClassesButton'
+	 *
+	 * @var string
+	 */
+	private static $hide_ancestor = 'ListFilterBase';
+
+	/**
+	 * @var array
+	 */
+	protected static $shared_filter_instances = array();
+
+	/** 
+	 * @return FieldList
+	 */
+	public function getCMSFields() {
+		$fields = parent::getCMSFields();
+		$error = $this->getContextSummaryField(true);
+		if ($error) {
+			$fields->insertBefore(LiteralField::create('ConfigError_Literal', $this->getContextSummaryField(true)), 'Title');
+		}
+		$fields->removeByName(array('Sort', 'ParentID'));
+		return $fields;
+	}
+
+	/** 
+	 * Get list class name
+	 * ie. 'SiteTree'
+	 *
+	 * @return string
+	 */
+	public function getListClassName() {
+		return $this->Parent()->ListClassName;
+	}
+
+	/** 
+	 * The fields to show on the frontend to manipulate the map and
+	 * listing content.
+	 *
+	 * @return FieldList
+	 */
+	public function getFilterFields() {
+		return new FieldList();
+	}
+
+	/** 
+	 * @return FieldList
+	 */
+	final public function getFilterFieldsAll() {
+		$fields = $this->getFilterFields();
+		$this->extend('updateFilterFields', $fields);
+		return $fields;
+	}
+
+	/**
+	 * Get config variables to utilize with the JavaScript callback.
+	 * ie. $(this).data('data-fieldgroup-config')
+	 *
+	 * @return array
+	 */
+	public function getFilterConfig() {
+		return array();
+	}
+
+	/**
+	 * When generating map pins / widget data, this function will
+	 * add additional data so that the pins can be filtered in JavaScript.
+	 *
+	 * @return mixed
+	 */
+	public function getFilterData(DataObject $record) {
+		return array(
+			'value' => null
+		);
+	}
+
+	/**
+	 * The data to return for filtering based on the backend request.
+	 * ie. For Solr, you just want to return a map/associate array of IDs that matches the search
+	 *     for the frontend filtering.
+	 *
+	 * @return string
+	 */
+	public function getFilterBackendData(SS_List $list, array $data) {
+		return null;
+	}
+
+	/**
+	 * When the form hits the backend (for updating the listing), filter
+	 * the SS_List by the filter fields.
+	 *
+	 * @return SS_List|ListFilterFormUpdate
+	 */
+	public function applyFilter(SS_List $list, array $data) {
+		throw new Exception('Missing "'.__FUNCTION__.'" implementation for "'.$this->class.'"');
+	}
+
+	/**
+	 * Return a ListFilterShared object to share between ListFilterBase objects.
+	 *
+	 * @return ListFilterShared
+	 */
+	public function SharedFilter($class, $namespace = '') {
+		if (isset(self::$shared_filter_instances[$namespace][$class])) {
+			return self::$shared_filter_instances[$namespace][$class];
+		}
+		$sharedFilter = $this->LocalFilter($class);
+		self::$shared_filter_instances[$namespace][$class] = $sharedFilter;
+		return $sharedFilter;
+	}
+
+	/**
+	 * Return a ListFilterShared object to use locally only.
+	 *
+	 * @return ListFilterShared
+	 */
+	public function LocalFilter($class) {
+		$sharedFilter = $class::create($this->Parent());
+		return $sharedFilter;
+	}
+
+	/**
+	 * The name of the event to pass to 
+	 * jQuery('.js-listfilter-filter').triggerHandler()
+	 *
+	 * For examples, check 'MapWidgetFilterGroup.js'
+	 *
+	 * @return string
+	 */
+	public function getJavascriptCallback() {
+		return $this->class;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function singular_name() {
+		if ($this->class === __CLASS__) {
+			return parent::singular_name();
+		}
+		$singularName = parent::singular_name();
+		return str_replace('List Filter', '', $singularName);
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getContextSummaryField($errorOnly = false) {
+		$html = new HTMLText('ContextSummaryField');
+
+		// Set color if error
+		$color = '';
+		$error = $this->getConfigError();
+		if ($error) {
+			if ($error === true || $error === 1) {
+				$error = 'Error';
+			}
+			$color = '#C00';
+		}
+
+		$context = $this->getContext();
+		$text = $error;
+		if (!$errorOnly) {
+			if ($text && $context) {
+				$text .= ' -- '.$context;
+			} else {
+				$text .= $context;
+			}
+		}
+
+        $html->setValue(sprintf(
+            '<span %s>%s</span>',
+            $color ? 'style="color: '.$color.';"' : '',
+            htmlentities($text)
+        ));
+		return $html;
+	}
+
+	/**
+	 * Return generalized information about the filter configuration 
+	 *
+	 * @return string
+	 */
+	public function getContext() {
+		return '';
+	}
+
+	/** 
+	 * Return an error message to show in CMS fields and in summary fields
+	 *
+	 * @return bool|string
+	 */
+	public function getConfigError() {
+		return false;
+	}
+}
