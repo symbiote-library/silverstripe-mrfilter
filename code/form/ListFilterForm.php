@@ -250,6 +250,7 @@ class ListFilterForm extends Form {
 		if ($filterGroupData !== null) {
 			$result['FilterGroups'] = $filterGroupData;
 		}
+		$result['Count'] = $list->count();
 		$result['Template'] = $template;
 		if (count($result) === 1) {
 			// Return raw string/template if 

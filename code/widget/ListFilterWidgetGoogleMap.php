@@ -18,7 +18,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 */
 	public function __construct() {
 		parent::__construct();
-		$this->addExtraClass('js-listfilter-widget_googlemap');
+		$this->addExtraClass('filtergroup-widget_googlemap js-listfilter-widget_googlemap');
 	}
 
 	/** 

@@ -1,5 +1,5 @@
 <% if $FieldList %>
 	<% loop $FieldList %>
-		$Field
+		$FieldHolder
 	<% end_loop %>
 <% end_if %>

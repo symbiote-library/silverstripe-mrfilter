@@ -30,11 +30,13 @@
 			},
 			data: $form.serialize()
         }).done(function(data) {
-        	var template, filterGroups;
+        	var template, filterGroups, count;
         	if (typeof data === 'object') {
         		filterGroups = data.FilterGroups;
         		template = data.Template;
+        		count = data.Count;
         	} else {
+        		count = null;
         		filterGroups = null;
         		template = data;
         	}
@@ -52,6 +54,13 @@
 	        	$globalListing.html(template);
 	        	if ($relatedListing.length + $globalListing.length === 0) {
 	        		debugLog('Missing .js-listfilter-listing element. Unable to put form result anywhere.');
+	        	}
+	        	if (count !== null) {
+	        		// Update records returned count
+	        		var $relatedListingCount = $('.js-listfilter-listing-count[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+	        		$relatedListingCount.html(count);
+	        		var $globalListingCount = $('.js-listfilter-listing-count:not([data-listfilter-id])');
+	        		$globalListingCount.html(count);
 	        	}
         	}
         	if (filterGroups !== null) {
@@ -83,7 +92,7 @@
 		var $filterGroupHolder = $(this).parents('.js-listfilter-filter').first();
 		var $form = $(this.form);
 		if (!$filterGroupHolder.length) {
-			debugLog('Missing .js-listfilter-filter as parent element. MapWidgetFilterGroupField_holder must have been modified incorrectly.');
+			debugLog('Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified incorrectly.');
 			return;
 		}
 		$form.trigger('ListFilterFormUpdate');
@@ -102,7 +111,11 @@
 			}
 			// Setup callbacks
 			for (var i = 0; i < this.elements.length; ++i) {
-				$(this.elements[i]).change(formFieldChange);
+				var it = this.elements[i];
+				if (it.tagName === 'FIELDSET') {
+					continue;
+				}
+				$(it).change(formFieldChange);
 			}
 			$form.submit(formSubmit);
 			$form.data('listfilter-initiated', true);

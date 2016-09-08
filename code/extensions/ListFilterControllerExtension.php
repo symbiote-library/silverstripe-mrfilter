@@ -7,15 +7,15 @@ class ListFilterControllerExtension extends Extension {
 
 	public function ListFilterForm(SS_HTTPRequest $request = null) {
 		$page = $this->owner->data();
-		$record = null;
+		$listFilterSet = null;
 		if ($page->hasExtension('ListFilterSetExtension')) {
-			$record = $page->ListFilterSet();
-			if (!$record->exists()) {
+			$listFilterSet = $page->ListFilterSet();
+			if (!$listFilterSet->exists()) {
 				return '';
 			}
 		} else {
 			throw new Exception('Missing "ListFilterSetExtension" on '.$page->class);
 		}
-		return ListFilterForm::create($this->owner, __FUNCTION__, $record);
+		return ListFilterForm::create($this->owner, __FUNCTION__, $listFilterSet);
 	}
 }

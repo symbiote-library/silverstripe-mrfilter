@@ -38,7 +38,9 @@ class ListFilterTags extends ListFilterBase {
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
 		$tags = $this->SelectableTags();
-		$tags = $tags->map('ID', 'Title');
+		if ($tags instanceof SS_List) {
+			$tags = $tags->map('ID', 'Title');
+		}
 		$fields->push($field = CheckboxSetField::create('Tags', $this->Title, $tags));
 		return $fields;
 	}
@@ -79,7 +81,11 @@ class ListFilterTags extends ListFilterBase {
 	 */
 	public function getContext() {
 		if ($this->isInDB()) {
-			return 'Tags: '.implode(', ', $this->SelectableTags()->map('Title')->toArray());
+			$list = $this->SelectableTags();
+			if ($list instanceof SS_List) {
+				$list = $list->map('Title');
+			}
+			return 'Tags: '.implode(', ', $list);
 		}
 	}
 }
