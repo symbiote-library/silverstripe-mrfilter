@@ -7,11 +7,34 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	);
 
 	/**
+	 * A custom set list to use for 'getFeatureCollection'
+	 */
+	protected $list = null;
+
+	/**
+	 * Set if the widget loads all feature data and popup data inside 
+	 * the data attributes (false) or via AJAX (true).
+	 *
+	 * Set to null to use 'default_ajax_disabled' config.
+	 *
+	 * @var boolean
+	 */
+	protected $ajax_enabled = null;
+
+	/**
 	 * The Google Maps API key
 	 *
 	 * @var string
 	 */
 	private static $api_key = null;
+
+	/**
+	 * Configure if the widget loads all feature data and popup data inside 
+	 * the data attributes or via AJAX.
+	 *
+	 * @var boolean
+	 */
+	private static $default_ajax_disabled = false;
 
 	/**
 	 * {@inheritdoc}
@@ -45,27 +68,37 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			$this->getResponse()->setStatusCode(400);
 			return '';
 		}
-		$filterSetRecord = $this->getRecord();
-		$list = $filterSetRecord->BaseList();
+		$list = $this->FilteredList(array());
 		$list = $list->filter(array('ID' => $id));
 		$record = $list->first();
 		if (!$record) {
 			$this->getResponse()->setStatusCode(400);
 			return '';
 		}
-		return $record->renderWith(array(__CLASS__.'InfoWindow'))->RAW();
+		$template = $this->getPopupTemplate($record);
+		if (!$template) {
+			$this->getResponse()->setStatusCode(400);
+			return '';
+		}
+		return $template->RAW();
 	}
 
 	/**
 	 * @return array
 	 */
 	public function getFeatureCollection() {
-		$filterSetRecord = $this->getRecord();
+		$list = $this->getList();
+		if (!$list) {
+			// NOTE(Jake): Ensures if any filters are applied with no user input, that they
+			//			   still get applied for map markers.
+			$list = $this->FilteredList(array());
+			if (!$list) {
+				throw new Exception('No form or record configured against '.__CLASS__.'.');
+			}
+		}
 
+		$filterSetRecord = $this->getListFilterSet();
 		$features = array();
-		// NOTE(Jake): Ensures if any filters are applied with no user input, that they
-		//			   still get applied for map markers.
-		$list = $filterSetRecord->FilteredList(array());
 		foreach ($list as $record) {
 			if ($record->hasMethod('getGeoJSONFeatureArray')) {
 				// Support GeoJSON module
@@ -90,12 +123,15 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				$properties = &$feature['properties'];
 				$properties['ID'] = $record->ID;
 				$properties['Name'] = $record->Title;
+
+				// Use "updateGeoJSONFeatureArray" from GeoJSON module
+				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
 			}
-			// Use "updateGeoJSONFeatureArray" from GeoJSON module
-			$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
 			if (!isset($properties['FilterGroups'])) {
 				// Add frontend widget filtering information
-				$filterData = $filterSetRecord->FilterData($record);
+				if ($filterSetRecord) {
+					$filterData = $filterSetRecord->FilterData($record);
+				}
 				$properties['FilterGroups'] = $filterData;
 			}
 			$features[] = $feature;
@@ -105,6 +141,32 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			'features' => $features,
 		);
 		return $result;
+	}
+
+	/**
+	 * @return ListFilterWidgetGoogleMap
+	 */
+	public function setAJAXEnabled($value) {
+		$this->ajax_enabled = $value;
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getAJAXEnabled() {
+		$result = $this->ajax_enabled;
+		if ($result === null) {
+			return ($this->config()->default_ajax_disabled == false);
+		}
+		return $result;
+	}
+
+	/**
+	 * @return HTMLText
+	 */
+	public function getPopupTemplate(DataObjectInterface $record) {
+		return $record->renderWith(array(__CLASS__.'InfoWindow'));
 	}
 
 	/**
@@ -119,10 +181,45 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * {@inheritdoc}
 	 */
 	public function getDataAttributes() {
-		$filterSetRecord = $this->getRecord();
-		$attributes = array(
-			'features-url'	 => $this->Link('doGetFeatures'),//'test.json', //$this->Link('doGetFeatures'), //'test.json',
-			'popup-url'		 => $this->Link('doGetPopup'),
+		// Setup default center lat/lng for map
+		// NOTE(Jake): 0,0 = the map will set the center based on all the markers.
+		$latitude = 0;
+		$longitude = 0;
+		$page = $this->getForm()->getController()->data();
+		if ($page) {
+			$latitude = $page->Lat;
+			$longitude = $page->Lng;
+		}
+		$filterSetRecord = $this->getListFilterSet();
+		if ((!$latitude || !$longitude) && $filterSetRecord) {
+			$latitude = $filterSetRecord->Lat;
+			$longitude = $filterSetRecord->Lng;
+		}
+
+		// Setup attributes
+		$attributes = array();
+		if ($this->getAJAXEnabled()) {
+			$attributes = array(
+				'features-url'	 => $this->Link('doGetFeatures'),
+				'popup-url'		 => $this->Link('doGetPopup'),
+				'popup-loading'  => $this->renderWith(array(__CLASS__.'InfoWindowLoading')),
+			);
+		} else {
+			$attributes['features'] = $this->getFeatureCollection();
+			$popupTemplates = array();
+			foreach ($this->FilteredList() as $record) {
+				$popupTemplate = $this->getPopupTemplate($record);
+				if ($popupTemplate && $popupTemplate instanceof HTMLText) {
+					$popupTemplate = $popupTemplate->RAW();
+				}
+				$popupTemplates[$record->ID] = $popupTemplate;
+			}
+			if ($popupTemplates) {
+				$attributes['popup'] = $popupTemplates;
+			}
+		}
+
+		$attributes = array_merge($attributes, array(
 			'map-dependencies' => array(
 				'markerclusterer' => array(
 					'script' => '/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
@@ -137,8 +234,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			'map-parameters' => array(
 				'zoom' => 6,
 				'center' => array(
-					'lat' => (float)$filterSetRecord->Lat,
-					'lng' => (float)$filterSetRecord->Lng,
+					'lat' => (float)$latitude,
+					'lng' => (float)$longitude,
 				),
 			),
 			'marker-parameters'	=> array(
@@ -150,7 +247,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				'libraries' => 'places',
 				'callback'  => 'initSSMapWidget',
 			),
-		);
+		));
+
 		$attributes = array_merge(parent::getDataAttributes(), $attributes);
 		return $attributes;
 	}

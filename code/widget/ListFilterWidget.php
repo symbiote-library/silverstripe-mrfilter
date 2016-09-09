@@ -9,6 +9,11 @@ abstract class ListFilterWidget extends Controller {
 	protected $form;
 
 	/**
+	 * @var DataObject
+	 */
+	protected $record = null;
+
+	/**
 	 * Extra CSS classes
 	 *
 	 * @var array
@@ -29,8 +34,9 @@ abstract class ListFilterWidget extends Controller {
 	/**
 	 * @return ListFilterSet
 	 */
-	public function getRecord() {
-		return $this->getForm()->getRecord();
+	public function getListFilterSet() {
+		$form = $this->getForm();
+		return ($form) ? $form->getRecord() : null;
 	}
 
 	/** 
@@ -47,16 +53,57 @@ abstract class ListFilterWidget extends Controller {
 	public function getForm() {
 		return $this->form;
 	}
+
+	/**
+	 * @return SS_List
+	 */
+	public function BaseList() {
+		$list = $this->getList();
+		if (!$list) {
+			$filterSetRecord = $this->getListFilterSet();
+			$list = $filterSetRecord->BaseList();
+		}
+		return $list;
+	}
+
+	/**
+	 * @return SS_List
+	 */
+	public function FilteredList($data = array()) {
+		$filterSetRecord = $this->getListFilterSet();
+		
+		$list = $this->BaseList();
+		$list = $filterSetRecord->applyFilterToList($list, $data);
+		return $list;
+	}
+
+	/**
+	 * Override the list used for the widget.
+	 *
+	 * @return ListFilterWidgetGoogleMap
+	 */
+	public function setList(SS_List $list) {
+		$this->list = $list;
+		return $this;
+	}
+
+	/**
+	 * @return SS_List
+	 */ 
+	public function getList() {
+		return $this->list;
+	}
 	
 	/**
 	 * @return array
 	 */
 	public function getDataAttributes() {
-		$record = $this->getRecord();
-		$attributes = array(
+		$attributes = array();
+		$listFilterSet = $this->getListFilterSet();
+		if ($listFilterSet) {
 			// NOTE(Jake): This is required to link the <form> and map <div> together (2016-08-23)
-			'listfilter-id'	=> $record->ID,
-		);
+			$attributes['listfilter-id'] = $listFilterSet->ID;
+		}
 		return $attributes;
 	}
 

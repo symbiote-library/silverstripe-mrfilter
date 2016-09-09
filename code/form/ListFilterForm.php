@@ -19,14 +19,27 @@ class ListFilterForm extends Form {
 	 */
 	protected $record = null;
 
+	/** 
+	 * @var ListFilterWidget
+	 */
+	protected $widget = null;
+
 	protected $formMethod = 'GET';
 
-	public function __construct($controller, $name, ListFilterSet $record) {
+	public function __construct($controller, $name, ListFilterSet $listFilterSet = null) {
+		$this->class = get_class(); 
 		$this->controller = $controller;
-		$this->record = $record;
-		$this->class = get_class();
+		$this->record = $listFilterSet;
 		if (!$this->record) {
-			throw new Exception('Null $record parameter passed to '.__CLASS__.' constructor.');
+			$pageOrDataRecord = $this->controller->data();
+			if ($pageOrDataRecord && $pageOrDataRecord->hasExtension('ListFilterSetExtension')) {
+				$this->record = $pageOrDataRecord->ListFilterSet();
+			} else {
+				throw new Exception('Missing "ListFilterSetExtension" on '.$page->class. ' or failed to provide a ListFilterSet as the 3rd parameter.');
+			}
+		}
+		if (!$this->record) {
+			throw new Exception('Missing "ListFilterSet". Unable to determine from controller and it was not passed as 3rd parameter.');
 		}
 
 		$fieldNamespace = $this->class;
@@ -82,6 +95,24 @@ class ListFilterForm extends Form {
 	 */
 	public function TagEnd() {
 		return '</form>';
+	}
+
+	/**
+	 * @return $this
+	 */
+	public function setWidget(ListFilterWidget $widget) {
+		$this->widget = $widget;
+		if ($this->widget) {
+			$this->widget->setForm($this);
+		}
+		return $this;
+	}
+
+	/**
+	 * @return ListFilterWidget
+	 */
+	public function getWidget() {
+		return $this->widget;
 	}
 
 	/**
@@ -172,7 +203,7 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function FilterBackendData($data = null) {
-		if (!$this->WidgetObject()) {
+		if (!$this->getWidget()) {
 			// Don't send back backend data if there is no widget configured
 			// to use it.
 			return;
@@ -185,25 +216,14 @@ class ListFilterForm extends Form {
 	}
 
 	/**
-	 * @return ListFilterWidget
-	 */
-	public function WidgetObject() {
-		$object = null;
-		if ($this->controller && $this->controller->hasMethod('ListFilterWidget')) {
-			$object = $this->controller->ListFilterWidget();
-		}
-		return $object;
-	}
-
-	/**
 	 * For calling $ListFilterForm.Widget in a template.
 	 *
 	 * @return HTMLText
 	 */
 	public function Widget($request = null) {
-		$widget = $this->WidgetObject();
+		$widget = $this->getWidget();
 		if (!$widget) {
-			throw new Exception('No "ListFilterWidget" method found on controller ('.$this->controller->class.')');
+			throw new Exception('Must configure a widget with "setWidget()"');
 		}
 		$widget->setForm($this);
 		return $widget;
