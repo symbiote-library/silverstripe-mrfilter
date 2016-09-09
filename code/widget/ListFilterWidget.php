@@ -39,21 +39,6 @@ abstract class ListFilterWidget extends Controller {
 		return ($form) ? $form->getRecord() : null;
 	}
 
-	/**
-	 * @return DataObject
-	 */
-	public function getRecord() {
-		return $this->record;
-	}
-
-	/**
-	 * @return ListFilterWidget
-	 */
-	public function setRecord(DataObjectInterface $record) {
-		$this->record = $record;
-		return $this;
-	}
-
 	/** 
 	 * @return ListFilterWidget
 	 */
@@ -67,6 +52,46 @@ abstract class ListFilterWidget extends Controller {
 	 */
 	public function getForm() {
 		return $this->form;
+	}
+
+	/**
+	 * @return SS_List
+	 */
+	public function BaseList() {
+		$list = $this->getList();
+		if (!$list) {
+			$filterSetRecord = $this->getListFilterSet();
+			$list = $filterSetRecord->BaseList();
+		}
+		return $list;
+	}
+
+	/**
+	 * @return SS_List
+	 */
+	public function FilteredList($data = array()) {
+		$filterSetRecord = $this->getListFilterSet();
+		
+		$list = $this->BaseList();
+		$list = $filterSetRecord->applyFilterToList($list, $data);
+		return $list;
+	}
+
+	/**
+	 * Override the list used for the widget.
+	 *
+	 * @return ListFilterWidgetGoogleMap
+	 */
+	public function setList(SS_List $list) {
+		$this->list = $list;
+		return $this;
+	}
+
+	/**
+	 * @return SS_List
+	 */ 
+	public function getList() {
+		return $this->list;
 	}
 	
 	/**

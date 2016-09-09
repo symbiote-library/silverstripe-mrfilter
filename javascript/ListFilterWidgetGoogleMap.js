@@ -92,6 +92,7 @@
     	}
 		var map = $mapElement.data('map');
 		var dependencies = $mapElement.data('map-dependencies');
+		var popupEnabled = ($mapElement.data('popup-url') || $mapElement.data('popup'));
 
 		// todo(Jake): check if cluster is loaded
 		var markerDefaultParameters = $mapElement.data('marker-parameters');
@@ -111,9 +112,11 @@
 				clusterMarkers.push(marker);
 				map.data.remove(e.feature);
 
-				marker.addListener('click', function() {
-					$mapElement.trigger('GoogleMapInfoWindowOpen', [marker.record, infoWindow]);
-				});
+				if (popupEnabled) {
+					marker.addListener('click', function() {
+						$mapElement.trigger('GoogleMapInfoWindowOpen', [marker.record, infoWindow]);
+					});
+				}
 
 				// Add record for filtering
 				var filterGroups = e.feature.getProperty('FilterGroups');

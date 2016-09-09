@@ -7,11 +7,34 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	);
 
 	/**
+	 * A custom set list to use for 'getFeatureCollection'
+	 */
+	protected $list = null;
+
+	/**
+	 * Set if the widget loads all feature data and popup data inside 
+	 * the data attributes (false) or via AJAX (true).
+	 *
+	 * Set to null to use 'default_ajax_disabled' config.
+	 *
+	 * @var boolean
+	 */
+	protected $ajax_enabled = null;
+
+	/**
 	 * The Google Maps API key
 	 *
 	 * @var string
 	 */
 	private static $api_key = null;
+
+	/**
+	 * Configure if the widget loads all feature data and popup data inside 
+	 * the data attributes or via AJAX.
+	 *
+	 * @var boolean
+	 */
+	private static $default_ajax_disabled = false;
 
 	/**
 	 * {@inheritdoc}
@@ -45,13 +68,9 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			$this->getResponse()->setStatusCode(400);
 			return '';
 		}
-		$record = $this->getRecord();
-		if (!$record) {
-			$filterSetRecord = $this->getListFilterSet();
-			$list = $filterSetRecord->BaseList();
-			$list = $list->filter(array('ID' => $id));
-			$record = $list->first();
-		}
+		$list = $this->FilteredList(array());
+		$list = $list->filter(array('ID' => $id));
+		$record = $list->first();
 		if (!$record) {
 			$this->getResponse()->setStatusCode(400);
 			return '';
@@ -68,20 +87,18 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return array
 	 */
 	public function getFeatureCollection() {
-		$filterSetRecord = $this->getListFilterSet();
-		$record = $this->getRecord();
-
-		$features = array();
-		if ($record) {
-			$list = new ArrayList(array($record));
-		} else if ($filterSetRecord) {
+		$list = $this->getList();
+		if (!$list) {
 			// NOTE(Jake): Ensures if any filters are applied with no user input, that they
 			//			   still get applied for map markers.
-			$list = $filterSetRecord->FilteredList(array());
-		} else {
-			throw new Exception('No form or record configured against '.__CLASS__.'.');
+			$list = $this->FilteredList(array());
+			if (!$list) {
+				throw new Exception('No form or record configured against '.__CLASS__.'.');
+			}
 		}
 
+		$filterSetRecord = $this->getListFilterSet();
+		$features = array();
 		foreach ($list as $record) {
 			if ($record->hasMethod('getGeoJSONFeatureArray')) {
 				// Support GeoJSON module
@@ -126,6 +143,28 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		return $result;
 	}
 
+	/**
+	 * @return ListFilterWidgetGoogleMap
+	 */
+	public function setAJAXEnabled($value) {
+		$this->ajax_enabled = $value;
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getAJAXEnabled() {
+		$result = $this->ajax_enabled;
+		if ($result === null) {
+			return ($this->config()->default_ajax_disabled == false);
+		}
+		return $result;
+	}
+
+	/**
+	 * @return HTMLText
+	 */
 	public function getPopupTemplate(DataObjectInterface $record) {
 		return $record->renderWith(array(__CLASS__.'InfoWindow'));
 	}
@@ -142,25 +181,45 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * {@inheritdoc}
 	 */
 	public function getDataAttributes() {
+		// Setup default center lat/lng for map
+		// NOTE(Jake): 0,0 = the map will set the center based on all the markers.
 		$latitude = 0;
 		$longitude = 0;
-
-		$isSingleMarker = false;
-		$record = $this->getRecord();
+		$page = $this->getForm()->getController()->data();
+		if ($page) {
+			$latitude = $page->Lat;
+			$longitude = $page->Lng;
+		}
 		$filterSetRecord = $this->getListFilterSet();
-		if ($record) {
-			$isSingleMarker = true;
-			$latitude = $record->Lat;
-			$longitude = $record->Lng;
-		} else if ($filterSetRecord) {
+		if ((!$latitude || !$longitude) && $filterSetRecord) {
 			$latitude = $filterSetRecord->Lat;
 			$longitude = $filterSetRecord->Lng;
 		}
 
-		$attributes = array(
-			'features-url'	 => $this->Link('doGetFeatures'),
-			'popup-url'		 => $this->Link('doGetPopup'),
-			'popup-loading'  => $this->renderWith(array(__CLASS__.'InfoWindowLoading')),
+		// Setup attributes
+		$attributes = array();
+		if ($this->getAJAXEnabled()) {
+			$attributes = array(
+				'features-url'	 => $this->Link('doGetFeatures'),
+				'popup-url'		 => $this->Link('doGetPopup'),
+				'popup-loading'  => $this->renderWith(array(__CLASS__.'InfoWindowLoading')),
+			);
+		} else {
+			$attributes['features'] = $this->getFeatureCollection();
+			$popupTemplates = array();
+			foreach ($this->FilteredList() as $record) {
+				$popupTemplate = $this->getPopupTemplate($record);
+				if ($popupTemplate && $popupTemplate instanceof HTMLText) {
+					$popupTemplate = $popupTemplate->RAW();
+				}
+				$popupTemplates[$record->ID] = $popupTemplate;
+			}
+			if ($popupTemplates) {
+				$attributes['popup'] = $popupTemplates;
+			}
+		}
+
+		$attributes = array_merge($attributes, array(
 			'map-dependencies' => array(
 				'markerclusterer' => array(
 					'script' => '/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
@@ -188,16 +247,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				'libraries' => 'places',
 				'callback'  => 'initSSMapWidget',
 			),
-		);
-		if ($isSingleMarker) {
-			unset($attributes['features-url']);
-			unset($attributes['popup-url']);
-			$attributes['features'] = $this->getFeatureCollection();
-			$popupTemplate = $this->getPopupTemplate($record);
-			if ($popupTemplate) {
-				$attributes['popup'] = array($record->ID => $popupTemplate->RAW());
-			}
-		}
+		));
 
 		$attributes = array_merge(parent::getDataAttributes(), $attributes);
 		return $attributes;
