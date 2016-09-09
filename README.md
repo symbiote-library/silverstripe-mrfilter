@@ -8,6 +8,34 @@ Mr Filter is a filtering form that's configurable in the backend and able to be 
 It offers a simple to use API for filtering DataLists in the backend as well as offering flexible front-end filtering logic that is done
 without using slow backend responses.
 
+## Toggling Map View
+
+Occassionally in your front-end code, you'll want the map to start hidden and be toggled on with
+a button. The following code will ensure that if the map starts hidden, that it won't have an incorrect
+display once it becomes visible.
+
+```
+$('.js-view-map-button').click(function(e) {
+	$(this).addClass('is-active');
+
+	$('.js-view-map').removeClass('is-hidden');
+	$('.js-view-listing').addClass('is-hidden');
+	
+	// Fix Google Map display:none; bug
+	$('.js-listfilter-widget').each(function() {
+		var map = $(this).data('map');
+		if (!map) {
+			return;
+		}
+		// NOTE: Must store center before resize, otherwise the center will be
+		//		 the top-left of the map.
+		var center = map.getCenter();
+		google.maps.event.trigger(map, 'resize');
+		map.setCenter(center);
+	});
+});
+```
+
 ## Caching Example
 
 You can cache the map marker/features by getting a task to occassionally trigger 'updateCacheFile'.

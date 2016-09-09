@@ -9,6 +9,11 @@ abstract class ListFilterWidget extends Controller {
 	protected $form;
 
 	/**
+	 * @var DataObject
+	 */
+	protected $record = null;
+
+	/**
 	 * Extra CSS classes
 	 *
 	 * @var array
@@ -29,8 +34,24 @@ abstract class ListFilterWidget extends Controller {
 	/**
 	 * @return ListFilterSet
 	 */
+	public function getListFilterSet() {
+		$form = $this->getForm();
+		return ($form) ? $form->getRecord() : null;
+	}
+
+	/**
+	 * @return DataObject
+	 */
 	public function getRecord() {
-		return $this->getForm()->getRecord();
+		return $this->record;
+	}
+
+	/**
+	 * @return ListFilterWidget
+	 */
+	public function setRecord(DataObjectInterface $record) {
+		$this->record = $record;
+		return $this;
 	}
 
 	/** 
@@ -52,11 +73,12 @@ abstract class ListFilterWidget extends Controller {
 	 * @return array
 	 */
 	public function getDataAttributes() {
-		$record = $this->getRecord();
-		$attributes = array(
+		$attributes = array();
+		$listFilterSet = $this->getListFilterSet();
+		if ($listFilterSet) {
 			// NOTE(Jake): This is required to link the <form> and map <div> together (2016-08-23)
-			'listfilter-id'	=> $record->ID,
-		);
+			$attributes['listfilter-id'] = $listFilterSet->ID;
+		}
 		return $attributes;
 	}
 

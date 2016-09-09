@@ -45,27 +45,43 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			$this->getResponse()->setStatusCode(400);
 			return '';
 		}
-		$filterSetRecord = $this->getRecord();
-		$list = $filterSetRecord->BaseList();
-		$list = $list->filter(array('ID' => $id));
-		$record = $list->first();
+		$record = $this->getRecord();
+		if (!$record) {
+			$filterSetRecord = $this->getListFilterSet();
+			$list = $filterSetRecord->BaseList();
+			$list = $list->filter(array('ID' => $id));
+			$record = $list->first();
+		}
 		if (!$record) {
 			$this->getResponse()->setStatusCode(400);
 			return '';
 		}
-		return $record->renderWith(array(__CLASS__.'InfoWindow'))->RAW();
+		$template = $this->getPopupTemplate($record);
+		if (!$template) {
+			$this->getResponse()->setStatusCode(400);
+			return '';
+		}
+		return $template->RAW();
 	}
 
 	/**
 	 * @return array
 	 */
 	public function getFeatureCollection() {
-		$filterSetRecord = $this->getRecord();
+		$filterSetRecord = $this->getListFilterSet();
+		$record = $this->getRecord();
 
 		$features = array();
-		// NOTE(Jake): Ensures if any filters are applied with no user input, that they
-		//			   still get applied for map markers.
-		$list = $filterSetRecord->FilteredList(array());
+		if ($record) {
+			$list = new ArrayList(array($record));
+		} else if ($filterSetRecord) {
+			// NOTE(Jake): Ensures if any filters are applied with no user input, that they
+			//			   still get applied for map markers.
+			$list = $filterSetRecord->FilteredList(array());
+		} else {
+			throw new Exception('No form or record configured against '.__CLASS__.'.');
+		}
+
 		foreach ($list as $record) {
 			if ($record->hasMethod('getGeoJSONFeatureArray')) {
 				// Support GeoJSON module
@@ -90,12 +106,15 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				$properties = &$feature['properties'];
 				$properties['ID'] = $record->ID;
 				$properties['Name'] = $record->Title;
+
+				// Use "updateGeoJSONFeatureArray" from GeoJSON module
+				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
 			}
-			// Use "updateGeoJSONFeatureArray" from GeoJSON module
-			$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
 			if (!isset($properties['FilterGroups'])) {
 				// Add frontend widget filtering information
-				$filterData = $filterSetRecord->FilterData($record);
+				if ($filterSetRecord) {
+					$filterData = $filterSetRecord->FilterData($record);
+				}
 				$properties['FilterGroups'] = $filterData;
 			}
 			$features[] = $feature;
@@ -105,6 +124,10 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			'features' => $features,
 		);
 		return $result;
+	}
+
+	public function getPopupTemplate(DataObjectInterface $record) {
+		return $record->renderWith(array(__CLASS__.'InfoWindow'));
 	}
 
 	/**
@@ -119,10 +142,25 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * {@inheritdoc}
 	 */
 	public function getDataAttributes() {
-		$filterSetRecord = $this->getRecord();
+		$latitude = 0;
+		$longitude = 0;
+
+		$isSingleMarker = false;
+		$record = $this->getRecord();
+		$filterSetRecord = $this->getListFilterSet();
+		if ($record) {
+			$isSingleMarker = true;
+			$latitude = $record->Lat;
+			$longitude = $record->Lng;
+		} else if ($filterSetRecord) {
+			$latitude = $filterSetRecord->Lat;
+			$longitude = $filterSetRecord->Lng;
+		}
+
 		$attributes = array(
-			'features-url'	 => $this->Link('doGetFeatures'),//'test.json', //$this->Link('doGetFeatures'), //'test.json',
+			'features-url'	 => $this->Link('doGetFeatures'),
 			'popup-url'		 => $this->Link('doGetPopup'),
+			'popup-loading'  => $this->renderWith(array(__CLASS__.'InfoWindowLoading')),
 			'map-dependencies' => array(
 				'markerclusterer' => array(
 					'script' => '/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
@@ -137,8 +175,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			'map-parameters' => array(
 				'zoom' => 6,
 				'center' => array(
-					'lat' => (float)$filterSetRecord->Lat,
-					'lng' => (float)$filterSetRecord->Lng,
+					'lat' => (float)$latitude,
+					'lng' => (float)$longitude,
 				),
 			),
 			'marker-parameters'	=> array(
@@ -151,6 +189,16 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				'callback'  => 'initSSMapWidget',
 			),
 		);
+		if ($isSingleMarker) {
+			unset($attributes['features-url']);
+			unset($attributes['popup-url']);
+			$attributes['features'] = $this->getFeatureCollection();
+			$popupTemplate = $this->getPopupTemplate($record);
+			if ($popupTemplate) {
+				$attributes['popup'] = array($record->ID => $popupTemplate->RAW());
+			}
+		}
+
 		$attributes = array_merge(parent::getDataAttributes(), $attributes);
 		return $attributes;
 	}

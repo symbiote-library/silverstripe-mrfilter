@@ -33,30 +33,38 @@
     var cacheAjaxURL = {};
     $mapWidgets.each(function(e) {
     	var $mapElement = $(this);
+
     	$mapElement.data('listfilter-records', false);
-    	
-    	var url = $mapElement.data('features-url');
-    	if (typeof cacheAjaxURL[url] === 'undefined') {
-    		cacheAjaxURL[url] = false;
-	    	$.ajax({
-				type: 'GET',
-				url: url,
-				async: true,
-				crossDomain: true,
-				headers: {
-				    'X-Requested-With': 'XMLHttpRequest'
-				}
-	        }).done(function(data) {
-	        	cacheAjaxURL[url] = data;
-	        	$mapWidgets.each(function() {
-	        		if ($(this).data('features-url') === url) {
-	        			loadFeaturesForMap(this);
-	        		}
-	        	});
-	        }).fail(function() {
-	        	cacheAjaxURL[url] = true;
-	        });
-	    }
+
+    	var features = $mapElement.data('features');
+    	if (features) {
+    		loadFeaturesForMap(this);
+    	} else {
+	    	var url = $mapElement.data('features-url');
+	    	if (url) {
+		    	if (typeof cacheAjaxURL[url] === 'undefined') {
+		    		cacheAjaxURL[url] = false;
+			    	$.ajax({
+						type: 'GET',
+						url: url,
+						async: true,
+						crossDomain: true,
+						headers: {
+						    'X-Requested-With': 'XMLHttpRequest'
+						}
+			        }).done(function(data) {
+			        	cacheAjaxURL[url] = data;
+			        	$mapWidgets.each(function() {
+			        		if ($(this).data('features-url') === url) {
+			        			loadFeaturesForMap(this);
+			        		}
+			        	});
+			        }).fail(function() {
+			        	cacheAjaxURL[url] = true;
+			        });
+			    }
+			}
+		}
     });
 
     // Initialize Google Map JS
@@ -74,8 +82,11 @@
 			return;
 		}
 		// Get feature data if its been loaded for that URL
-    	var url = $mapElement.data('features-url');
-    	var featureData = cacheAjaxURL[url];
+		var featureData = $mapElement.data('features');
+		if (!featureData) {
+	    	var url = $mapElement.data('features-url');
+	    	featureData = cacheAjaxURL[url];
+    	}
     	if (featureData === false || featureData === true) {
     		return;
     	}
@@ -135,8 +146,6 @@
 			$mapElement.data('markerclusterer', markerCluster);
 		}
 
-		// Handle map position here so that if the map starts off with 'display: none;', it'll
-		// still setup properly after a resize event.
 		google.maps.event.addListenerOnce(map, 'tilesloaded', function (e) {
 			var map = this;
 			var $mapElement = $(map.getDiv());
@@ -174,37 +183,44 @@
 
     	var content = record.Properties.InfoWindow;
     	if (!content) {
-			var url = $mapElement.data('popup-url');
-			url += '?ID='+record.ID;
-			if (typeof cacheAjaxURL[url] !== 'undefined' && cacheAjaxURL[url] !== true) {
-				if (cacheAjaxURL[url]) {
-					record.Properties.InfoWindow = cacheAjaxURL[url];
-				}
-			} else {
-				cacheAjaxURL[url] = false;
-				$.ajax({
-					type: 'GET',
-					url: url,
-					async: true,
-					crossDomain: true,
-					headers: {
-					    'X-Requested-With': 'XMLHttpRequest'
-					}
-		        }).done(function(data) {
-		        	cacheAjaxURL[url] = data;
-		        	record.Properties.InfoWindow = data;
-		        	$mapElement.trigger('GoogleMapInfoWindowOpen', [record, infoWindow]);
-		        }).fail(function() {
-		        	cacheAjaxURL[url] = true;
-		        });
-	    	}
+    		var infowindow = $mapElement.data('popup');
+    		if (infowindow) {
+    			record.Properties.InfoWindow = infowindow[record.ID];
+    		} else {
+				var url = $mapElement.data('popup-url');
+				if (url) {
+					url += '?ID='+record.ID;
+					if (typeof cacheAjaxURL[url] !== 'undefined' && cacheAjaxURL[url] !== true) {
+						if (cacheAjaxURL[url]) {
+							record.Properties.InfoWindow = cacheAjaxURL[url];
+						}
+					} else {
+						cacheAjaxURL[url] = false;
+						$.ajax({
+							type: 'GET',
+							url: url,
+							async: true,
+							crossDomain: true,
+							headers: {
+							    'X-Requested-With': 'XMLHttpRequest'
+							}
+				        }).done(function(data) {
+				        	cacheAjaxURL[url] = data;
+				        	record.Properties.InfoWindow = data;
+				        	$mapElement.trigger('GoogleMapInfoWindowOpen', [record, infoWindow]);
+				        }).fail(function() {
+				        	cacheAjaxURL[url] = true;
+				        });
+			    	}
+			    }
+			}
     	}
 
         content = record.Properties.InfoWindow;
 		if (content) {
 			infoWindow.setContent(content);
 		} else {
-			infoWindow.setContent('<p>Loading...</p>');
+			infoWindow.setContent($mapElement.data('popup-loading'));
 		}
 		infoWindow.setPosition(record.Marker.getPosition());
 		infoWindow.setOptions({pixelOffset: new google.maps.Size(0, -30)});
