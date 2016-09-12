@@ -80,7 +80,7 @@ abstract class ListFilterWidget extends Controller {
 	/**
 	 * Override the list used for the widget.
 	 *
-	 * @return ListFilterWidgetGoogleMap
+	 * @return ListFilterWidget
 	 */
 	public function setList(SS_List $list) {
 		$this->list = $list;

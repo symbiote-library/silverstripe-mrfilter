@@ -65,7 +65,7 @@ class ListFilterCompositeField extends CompositeField {
 			$filterConfig = $this->Filter->getFilterConfig();
 			if ($filterConfig) {
 				if (is_array($filterConfig)) {
-					$filterConfig = Convert::raw2att(json_encode($filterConfig));
+					$filterConfig = json_encode($filterConfig);
 				}
 				$result['data-fieldgroup-config'] = $filterConfig;
 			}

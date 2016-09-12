@@ -215,7 +215,8 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function FilterBackendData($data = null) {
-		if (!$this->getWidget()) {
+		$widget = $this->getWidget();
+		if (!$widget) {
 			// Don't send back backend data if there is no widget configured
 			// to use it.
 			return;
@@ -223,7 +224,8 @@ class ListFilterForm extends Form {
 		if ($data === null) {
 			$data = $this->getVarData();
 		}
-		$filterGroupData = $this->getRecord()->FilterBackendData($data);
+		$listFilterSet = $this->getRecord();
+		$filterGroupData = $listFilterSet->FilterBackendData($data, $widget);
 		return $filterGroupData;
 	}
 

@@ -74,7 +74,7 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function applyFilter(SS_List $list, array $data, $caller) {
+	public function applyFilter(SS_List $list, array $data) {
 		$start = isset($data['StartDate']) ? $data['StartDate'] : null;
 		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
 

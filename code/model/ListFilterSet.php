@@ -84,6 +84,21 @@ class ListFilterSet extends DataObject {
 	}
 
 	/**
+	 * @return ListFilterSet
+	 */
+	public function setCaller($caller) {
+		$this->caller = $caller;
+		return $this;
+	}
+
+	/**
+	 * @return object
+	 */
+	public function getCaller() {
+		return $this->caller;
+	}
+
+	/**
 	 * Get all the list filters, but only once. This ensures they keep state across
 	 * execution.
 	 *
@@ -160,7 +175,8 @@ class ListFilterSet extends DataObject {
 	 *
 	 * @return SS_List
 	 */
-	public function FilterBackendData(array $data) {
+	public function FilterBackendData(array $data, $caller) {
+		$this->setCaller($caller);
 		$allFilterGroupData = $this->unNamespaceFilterFields($data);
 
 		$result = array();
@@ -173,6 +189,7 @@ class ListFilterSet extends DataObject {
 				$result[$id] = $filterResultData;
 			}
 		}
+		$this->setCaller(null);
 		return $result;
 	}
 
@@ -180,6 +197,7 @@ class ListFilterSet extends DataObject {
 	 * Apply filters to any given list based on user-input
 	 */
 	public function applyFilterToList(SS_List $list, array $data, $caller) {
+		$this->setCaller($caller);
 		$allFilterGroupData = $this->unNamespaceFilterFields($data);
 
 		// Track shared filters
@@ -188,7 +206,7 @@ class ListFilterSet extends DataObject {
 		// Apply filter based on data sent through
 		foreach ($this->owner->ListFilters() as $filterGroup) {
 			$filterGroupData = isset($allFilterGroupData[$filterGroup->ID]) ? $allFilterGroupData[$filterGroup->ID] : array();
-			$filterResult = $filterGroup->applyFilter($list, $filterGroupData, $caller);
+			$filterResult = $filterGroup->applyFilter($list, $filterGroupData);
 			if ($filterResult !== null) {
 				if ($filterResult instanceof ListFilterShared) {
 					$sharedFilters[$filterResult->_uid] = $filterResult;
@@ -213,6 +231,7 @@ class ListFilterSet extends DataObject {
 			}
 		}
 
+		$this->setCaller(null);
 		return $list;
 	}
 

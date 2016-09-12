@@ -113,7 +113,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return string
 	 */
-	public function getFilterBackendData(SS_List $list, array $data, $caller) {
+	public function getFilterBackendData(SS_List $list, array $data) {
 		return null;
 	}
 
@@ -123,7 +123,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return SS_List|ListFilterFormUpdate
 	 */
-	public function applyFilter(SS_List $list, array $data, $caller) {
+	public function applyFilter(SS_List $list, array $data) {
 		throw new Exception('Missing "'.__FUNCTION__.'" implementation for "'.$this->class.'"');
 	}
 
@@ -172,6 +172,15 @@ class ListFilterBase extends DataObject {
 		}
 		$singularName = parent::singular_name();
 		return str_replace('List Filter', '', $singularName);
+	}
+
+	/**
+	 * Get the calling object of the filtering functions like 'applyFilter'.
+	 *
+	 * @return object
+	 */
+	public function getCaller() {
+		return $this->Parent()->getCaller();
 	}
 
 	/**

@@ -49,12 +49,20 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
+	public function getFilterConfig() {
+		return array(
+			'Radius' => $this->Radius(),
+		);
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
 	public function getFilterData(DataObject $record) {
 		return array(
 			'value' => array(
-				'Lat' 	 => $record->Lat,
-				'Lng' 	 => $record->Lng,
-				//'Radius' => $this->radius,
+				'Lat' 	 => deg2rad($record->Lat),
+				'Lng' 	 => deg2rad($record->Lng),
 			)
 		);
 	}
@@ -75,7 +83,7 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function applyFilter(SS_List $list, array $data, $caller) {
+	public function applyFilter(SS_List $list, array $data) {
 		$latLng = $this->getUserLatLng($data);
 		if (!$latLng) {
 			return;
@@ -93,7 +101,7 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilterBackendData(SS_List $list, array $data, $caller) {
+	public function getFilterBackendData(SS_List $list, array $data) {
 		$latLng = $this->getUserLatLng($data);
 		if (!$latLng) {
 			return;
@@ -126,7 +134,7 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	 * {@inheritdoc}
 	 */
 	public function getJavascriptCallback() {
-		return 'ListFilterGroupIDs';
+		return 'ListFilterLatLngRadius';
 	}
 
 	/**

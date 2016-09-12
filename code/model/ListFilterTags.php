@@ -61,7 +61,7 @@ class ListFilterTags extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function applyFilter(SS_List $list, array $data, $caller) {
+	public function applyFilter(SS_List $list, array $data) {
 		if (!isset($data['Tags'])) {
 			return;
 		}
