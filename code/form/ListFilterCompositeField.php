@@ -45,6 +45,7 @@ class ListFilterCompositeField extends CompositeField {
 					$fieldName = $field->getName();
 					$field->setName('FilterGroup_'.$filter->ID.'_'.$fieldName);
 					$field->setAttribute('data-name', $fieldName);
+					
 				}
 			}
 		}

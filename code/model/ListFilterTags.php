@@ -61,7 +61,7 @@ class ListFilterTags extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function applyFilter(SS_List $list, array $data) {
+	public function applyFilter(SS_List $list, array $data, $caller) {
 		if (!isset($data['Tags'])) {
 			return;
 		}
@@ -84,6 +84,9 @@ class ListFilterTags extends ListFilterBase {
 			$list = $this->SelectableTags();
 			if ($list instanceof SS_List) {
 				$list = $list->map('Title');
+			}
+			if ($list instanceof SS_Map) {
+				$list = $list->toArray();
 			}
 			return 'Tags: '.implode(', ', $list);
 		}

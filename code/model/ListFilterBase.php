@@ -31,6 +31,18 @@ class ListFilterBase extends DataObject {
 	protected static $shared_filter_instances = array();
 
 	/** 
+	 * This is executed before 'getFilterFields' and allows you to set properties
+	 * based on the $_GET vars so that templates can utilize the logic.
+	 *
+	 * ie. The use case for this is to detect if the user has explicitly disabled
+	 * 	   finding records relevant to their location, but only for that request.
+	 *
+	 * @return null
+	 */
+	public function init(array $data) {
+	}
+
+	/** 
 	 * @return FieldList
 	 */
 	public function getCMSFields() {
@@ -101,7 +113,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return string
 	 */
-	public function getFilterBackendData(SS_List $list, array $data) {
+	public function getFilterBackendData(SS_List $list, array $data, $caller) {
 		return null;
 	}
 
@@ -111,7 +123,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return SS_List|ListFilterFormUpdate
 	 */
-	public function applyFilter(SS_List $list, array $data) {
+	public function applyFilter(SS_List $list, array $data, $caller) {
 		throw new Exception('Missing "'.__FUNCTION__.'" implementation for "'.$this->class.'"');
 	}
 

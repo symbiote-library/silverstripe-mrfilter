@@ -73,7 +73,7 @@ abstract class ListFilterWidget extends Controller {
 		$filterSetRecord = $this->getListFilterSet();
 		
 		$list = $this->BaseList();
-		$list = $filterSetRecord->applyFilterToList($list, $data);
+		$list = $filterSetRecord->applyFilterToList($list, $data, $this);
 		return $list;
 	}
 
@@ -206,9 +206,6 @@ abstract class ListFilterWidget extends Controller {
 	 * @return HTMLText
 	 */
 	public function forTemplate() {
-		if (!$this->getForm()) {
-			throw new Exception('Missing $form on '.$this->class.'. Calling syntax in a template should be "$ListFilterForm.Widget" not "$ListFilterWidget".');
-		}
 		$this->onBeforeRender();
 		$this->extend('onBeforeRender', $this);
 		// Failover to $form but only in template context.

@@ -21,12 +21,20 @@ class ListFilterSet extends DataObject {
 		'ListFiltersString' => 'List Filters',
 	);
 
+	/**
+	 *
+	 */
+	protected $listFilters = null;
+
 	/** 
 	 * @return FieldList
 	 */
 	public function getCMSFields() {
+		$self = &$this;
+		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+			$self->updateCMSFields($fields);
+		});
 		$fields = parent::getCMSFields();
-		$this->updateCMSFields($fields);
 		return $fields;
 	}
 
@@ -46,7 +54,7 @@ class ListFilterSet extends DataObject {
 				$config->addComponent(new GridFieldAddNewMultiCLass());
 				$config->addComponent(new GridFieldOrderableRows());
 			}
-			$fields->addFieldToTab('Root.Main', GridField::create('ListFilters', 'Filter Groups', $this->owner->ListFilters(), $config));
+			$fields->addFieldToTab('Root.Main', GridField::create('ListFilters', 'Filter Groups', $this->owner->getComponents('ListFilters'), $config));
 		}
 	}
 
@@ -67,8 +75,29 @@ class ListFilterSet extends DataObject {
 	 * @return string
 	 */
 	public function getListFiltersString() {
-		$result = implode(', ', $this->ListFilters()->map('ID', 'singular_name')->toArray());
+		$listFilters = $this->getComponents('ListFilters')->map('ID', 'singular_name');
+		if ($listFilters instanceof SS_Map) {
+			$listFilters = $listFilters->toArray();
+		}
+		$result = implode(', ', $listFilters);
 		return $result;
+	}
+
+	/**
+	 * Get all the list filters, but only once. This ensures they keep state across
+	 * execution.
+	 *
+	 * ie. ListFilterBase has an 'init' function. I want any variables set in that function
+	 *     to carry across to the whole program flow.
+	 *
+	 * @return ArrayList
+	 */
+	public function ListFilters() {
+		if ($this->listFilters !== null) {
+			return $this->listFilters;
+		}
+		$result = new ArrayList($this->getComponents('ListFilters')->toArray());
+		return $this->listFilters = $result;
 	}
 
 	/** 
@@ -85,17 +114,17 @@ class ListFilterSet extends DataObject {
 	 *
 	 * @return SS_List
 	 */
-	public function FilteredList(array $data) {
+	public function FilteredList(array $data, $caller) {
 		$list = $this->owner->BaseList();
-		$list = $this->applyFilterToList($list, $data);
+		$list = $this->applyFilterToList($list, $data, $caller);
 		return $list;
 	}
 
 	/**
 	 * @return SS_List
 	 */
-	public function PaginatedFilteredList(array $data) {
-		$list = $this->FilteredList($data);
+	public function PaginatedFilteredList(array $data, $caller) {
+		$list = $this->FilteredList($data, $caller);
 		$list = PaginatedList::create($list, $data);
 		if ($this->ListLimitPerPage > 0) {
 			$list->setPageLength($this->ListLimitPerPage);
@@ -150,7 +179,7 @@ class ListFilterSet extends DataObject {
 	/**
 	 * Apply filters to any given list based on user-input
 	 */
-	public function applyFilterToList(SS_List $list, array $data) {
+	public function applyFilterToList(SS_List $list, array $data, $caller) {
 		$allFilterGroupData = $this->unNamespaceFilterFields($data);
 
 		// Track shared filters
@@ -159,7 +188,7 @@ class ListFilterSet extends DataObject {
 		// Apply filter based on data sent through
 		foreach ($this->owner->ListFilters() as $filterGroup) {
 			$filterGroupData = isset($allFilterGroupData[$filterGroup->ID]) ? $allFilterGroupData[$filterGroup->ID] : array();
-			$filterResult = $filterGroup->applyFilter($list, $filterGroupData);
+			$filterResult = $filterGroup->applyFilter($list, $filterGroupData, $caller);
 			if ($filterResult !== null) {
 				if ($filterResult instanceof ListFilterShared) {
 					$sharedFilters[$filterResult->_uid] = $filterResult;
@@ -190,7 +219,7 @@ class ListFilterSet extends DataObject {
 	/**
 	 * @return array
 	 */
-	protected function unNamespaceFilterFields(array $data) {
+	public function unNamespaceFilterFields(array $data) {
 		// Un-namespace the data specific to the ListFilterGroups.
 		$allFilterGroupData = array();
 		if ($data) {

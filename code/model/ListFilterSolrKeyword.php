@@ -17,7 +17,7 @@ class ListFilterSolrKeyword extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function applyFilter(SS_List $list, array $data) {
+	public function applyFilter(SS_List $list, array $data, $caller) {
 		if (!isset($data['Keywords']) || !$data['Keywords']) {
 			return;
 		}
@@ -30,7 +30,7 @@ class ListFilterSolrKeyword extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilterBackendData(SS_List $list, array $data) {
+	public function getFilterBackendData(SS_List $list, array $data, $caller) {
 		if (!isset($data['Keywords']) || !$data['Keywords']) {
 			return;
 		}

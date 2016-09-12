@@ -55,6 +55,7 @@ class ListFilterSharedSolr extends ListFilterShared {
 			} else {
 				// Don't completely halt execution if Solr goes down on production.
 				user_error($errorMessage, E_USER_WARNING);
+				return new ArrayList();
 			}
 		}
 		$ids = array();

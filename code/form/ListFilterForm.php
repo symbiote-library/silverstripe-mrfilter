@@ -119,8 +119,17 @@ class ListFilterForm extends Form {
 	 * @return FieldList
 	 */
 	public function getFormFields() {
+		$listFilterSet = $this->getRecord();
+		$allGetVars = $this->getVarData();
+		$getVarsForListFilters = $listFilterSet->unNamespaceFilterFields($allGetVars);
+
 		$fields = new FieldList();
-		foreach ($this->getRecord()->ListFilters() as $filterGroup) {
+		foreach ($listFilterSet->ListFilters() as $filterGroup) {
+			$getVars = array();
+			if (isset($getVarsForListFilters[$filterGroup->ID])) {
+				$getVars = $getVarsForListFilters[$filterGroup->ID];
+			}
+			$filterGroup->init($getVars);
 			$compositeField = ListFilterCompositeField::create($filterGroup);
 			$fields->push($compositeField);
 		}
@@ -167,7 +176,10 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function getVarData() {
-		$data = $this->request->getVars();
+		$data = array();
+		if ($this->request) {
+			$data = $this->request->getVars();
+		}
 		if (!$data) {
 			// Fallback to controller
 			$data = $this->controller->getRequest()->getVars();
@@ -189,7 +201,7 @@ class ListFilterForm extends Form {
 	 */
 	public function Listing(SS_List $list = null) {
 		if ($list === null) {
-			$list = $this->getRecord()->PaginatedFilteredList($this->getVarData());
+			$list = $this->getRecord()->PaginatedFilteredList($this->getVarData(), $this);
 		}
 		// todo(Jake): get class ancestry for rendering *_ListFilterListing
 		$result = $this->customise(array(
@@ -263,7 +275,7 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function doGetListing_Ajax($data) {
-		$list = $this->getRecord()->PaginatedFilteredList($data);
+		$list = $this->getRecord()->PaginatedFilteredList($data, $this);
 		$template = $this->Listing($list);
 		$result = array();
 		$filterGroupData = $this->FilterBackendData($data);
