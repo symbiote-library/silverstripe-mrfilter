@@ -131,6 +131,7 @@ class ListFilterForm extends Form {
 			}
 			$filterGroup->init($getVars);
 			$compositeField = ListFilterCompositeField::create($filterGroup);
+			$compositeField->filterConfig = $filterGroup->getFilterConfig($getVars);
 			$fields->push($compositeField);
 		}
 		return $fields;
@@ -156,9 +157,9 @@ class ListFilterForm extends Form {
 	 * @return FieldList
 	 */
 	final public function getFormFieldsAll() {
-		$actions = $this->getFormFields();
-		$this->extend('updateFormFields', $actions);
-		return $actions;
+		$fields = $this->getFormFields();
+		$this->extend('updateFormFields', $fields);
+		return $fields;
 	}
 
 	/**
@@ -168,6 +169,35 @@ class ListFilterForm extends Form {
 		$actions = $this->getFormActions();
 		$this->extend('updateFormActions', $actions);
 		return $actions;
+	}
+
+	/**
+	 * Get a list of filter group fields by their class.
+	 *
+	 * @return FieldList
+	 */
+	public function fieldsByClass($class) {
+		if (!$class) {
+			return false;
+		}
+		if (isset($class[0]) && $class[0] === '*') {
+			// Ignore subclassing, must be the exact class
+			$class = substr($class, 1);
+			$result = new FieldList();
+			foreach ($this->fields as $field) {
+				if ($field->Filter->class === $class) {
+					$result->push($field);
+				}
+			}
+			return $result;
+		}
+		$result = new FieldList();
+		foreach ($this->fields as $field) {
+			if ($field->Filter instanceof $class) {
+				$result->push($field);
+			}
+		}
+		return $result;
 	}
 
 	/**

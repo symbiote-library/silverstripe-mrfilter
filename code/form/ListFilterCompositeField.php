@@ -11,6 +11,16 @@ class ListFilterCompositeField extends CompositeField {
 	 */
 	public $context = '';
 
+	/** 
+	 * @var array
+	 */
+	public $filterConfig = array();
+
+	/**
+	 * @var boolean
+	 */
+	protected $hasRendered = false;
+
 	public function __construct(ListFilterBase $filter) {
 		$this->Filter = $filter;
 
@@ -62,7 +72,7 @@ class ListFilterCompositeField extends CompositeField {
 			$result['class'] = 'js-listfilter-filter';
 			$result['data-fieldgroup-id'] = $this->Filter->ID;
 			$result['data-fieldgroup-callback'] = $this->Filter->getJavascriptCallback();
-			$filterConfig = $this->Filter->getFilterConfig();
+			$filterConfig = $this->filterConfig;
 			if ($filterConfig) {
 				if (is_array($filterConfig)) {
 					$filterConfig = json_encode($filterConfig);
@@ -74,9 +84,20 @@ class ListFilterCompositeField extends CompositeField {
 	}
 
 	/**
+	 * Check if the filter has been rendered already or not
+	 *
+	 * @var boolean
+	 */
+	public function getHasRendered() {
+		return $this->hasRendered;
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function FieldHolder($properties = array()) {
+		$this->hasRendered = true;
+
 		$this->context = __FUNCTION__;
 		$this->failover = $this->Filter;
 		$result = parent::FieldHolder($properties);
@@ -88,6 +109,8 @@ class ListFilterCompositeField extends CompositeField {
 	 * {@inheritdoc}
 	 */
 	public function Field($properties = array()) {
+		$this->hasRendered = true;
+
 		$this->context = __FUNCTION__;
 		$this->failover = $this->Filter;
 		$result = parent::Field($properties);
@@ -96,6 +119,8 @@ class ListFilterCompositeField extends CompositeField {
 	}
 
 	public function forTemplate() {
+		$this->hasRendered = true;
+
 		$this->failover = $this->Filter;
 		$result = parent::forTemplate();
 		$this->failover = null;

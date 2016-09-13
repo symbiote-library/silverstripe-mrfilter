@@ -63,9 +63,12 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getFilterConfig() {
+	public function getFilterConfig(array $data) {
 		return array(
 			'Radius' => $this->Radius(),
+			// NOTE(Jake): Pass a Lat/Lng to filter by nearby locations based on the Radius for the Widget.
+			// 'Lat' => 0.0000,
+			// 'Lng' => 0.0000,
 		);
 	}
 

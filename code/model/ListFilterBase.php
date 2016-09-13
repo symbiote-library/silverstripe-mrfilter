@@ -90,7 +90,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return array
 	 */
-	public function getFilterConfig() {
+	public function getFilterConfig(array $data) {
 		return array();
 	}
 
