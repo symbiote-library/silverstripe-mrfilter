@@ -208,6 +208,12 @@ class ListFilterForm extends Form {
 			'Results' => $list,
 		))->renderWith(array($list->dataClass().'_ListFilterListing', 'ListFilterListing'));
 		$result->Items = $list;
+		$result->Count = $list->getIterator()->count();
+		if ($list instanceof PaginatedList) {
+			$result->TotalItems = $list->count();
+		} else {
+			$result->TotalItems = $result->Count;
+		}
 		return $result;
 	}
 
@@ -284,7 +290,17 @@ class ListFilterForm extends Form {
 		if ($filterGroupData !== null) {
 			$result['FilterGroups'] = $filterGroupData;
 		}
-		$result['Count'] = $list->count();
+		$count = 0;
+		foreach ($list as $r) {
+			++$count;
+		}
+		// NOTE(Jake): getIterator() ensures PaginatedList only returns the ->limit() amount in pagination
+		$result['Count'] = $list->getIterator()->count();
+		if ($list instanceof PaginatedList) {
+			$result['TotalItems'] = $list->getTotalItems();
+		} else {
+			$result['TotalItems'] = $result['Count'];
+		}
 		$result['Template'] = $template;
 		if (count($result) === 1) {
 			// Return raw string/template if 

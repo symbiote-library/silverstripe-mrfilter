@@ -157,8 +157,7 @@ class ListFilterSet extends DataObject {
 	 */
 	public function FilterData(DataObject $record) {
 		$result = array();
-		$filterGroups = $this->ListFilters();
-		foreach ($filterGroups as $filterGroup) {
+		foreach ($this->ListFilters() as $filterGroup) {
 			$data = $filterGroup->getFilterData($record);
 			if ($data !== null && (!isset($data['value']) || $data['value'] !== null)) {
 				$result[$filterGroup->ID] = $data;

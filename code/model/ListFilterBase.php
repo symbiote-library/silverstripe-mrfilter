@@ -121,7 +121,7 @@ class ListFilterBase extends DataObject {
 	 * When the form hits the backend (for updating the listing), filter
 	 * the SS_List by the filter fields.
 	 *
-	 * @return SS_List|ListFilterFormUpdate
+	 * @return SS_List|ListFilterShared|null
 	 */
 	public function applyFilter(SS_List $list, array $data) {
 		throw new Exception('Missing "'.__FUNCTION__.'" implementation for "'.$this->class.'"');

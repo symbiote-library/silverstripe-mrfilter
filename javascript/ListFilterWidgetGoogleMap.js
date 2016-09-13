@@ -149,6 +149,30 @@
 			$mapElement.data('markerclusterer', markerCluster);
 		}
 
+		$mapElement.bind('GoogleMapShowAllVisibleMarkers', function(e, callback) {
+			var $mapElement = $(this);
+			var records = $mapElement.data('listfilter-records');
+			if (records.length === 0) {
+				return;
+			}
+			var bounds = new google.maps.LatLngBounds();
+			var visibleMarkerCount = 0;
+			for (var i = 0; i < records.length; ++i) {
+				var marker = records[i].Marker;
+				if (marker.getVisible()) {
+					bounds.extend(marker.getPosition());
+					++visibleMarkerCount;
+				}
+			}
+			if (visibleMarkerCount > 0) {
+				var map = $mapElement.data('map');
+				map.fitBounds(bounds);
+	            map.setCenter(bounds.getCenter());
+	            return true;
+        	}
+        	return false;
+		});
+
 		google.maps.event.addListenerOnce(map, 'tilesloaded', function (e) {
 			var map = this;
 			var $mapElement = $(map.getDiv());
@@ -158,20 +182,16 @@
 			var lat = Math.floor(center.lat());
 			var lng = Math.floor(center.lng());
 			if (lat === 0 && lng === 0) {
-				var bounds = new google.maps.LatLngBounds();
-				var markers = 0;
-				for (var i = 0; i < records.length; ++i) {
-					var record = records[i];
-					var marker = record.Marker;
-					bounds.extend(marker.getPosition());
-					++markers;
-				}
-				if (markers > 0) {
-					map.fitBounds(bounds);
-		            map.setCenter(bounds.getCenter());
-		            var mapParameters = $mapElement.data('map-parameters');
-		            map.setZoom(mapParameters.zoom);
-	        	}
+				$mapElement.trigger('GoogleMapShowAllVisibleMarkers');
+			}
+	    });
+
+	    google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
+	    	// Ensure the map fits when fitting the bounds based on markers
+	    	// (map.fitBounds is async, so we need to set the zoom once its finished)
+	    	this.setZoom(this.getZoom() - 1);
+			if (this.getZoom() > 15) {
+				this.setZoom(15);
 			}
 	    });
 

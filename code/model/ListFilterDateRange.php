@@ -14,6 +14,13 @@ class ListFilterDateRange extends ListFilterBase {
 	);
 
 	/**
+	 * The default date format to show.
+	 *
+	 * @return string
+	 */
+	private static $default_dateformat = '';
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
@@ -38,17 +45,17 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
-
 		$fields->push($field = DateField::create('StartDate', 'Start Date'));
-		$field->setConfig('dateformat', $this->getDateFormat());
-		$field->setConfig('datavalueformat', $this->getDateFormat());
-		$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
+		if ($dateFormat = $this->getDateFormat()) {
+			$field->setConfig('dateformat', $dateFormat);
+			$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
+		}
 
 		$fields->push($field = DateField::create('EndDate', 'End Date'));
-		$field->setConfig('dateformat', $this->getDateFormat());
-		$field->setConfig('datavalueformat', $this->getDateFormat());
-		$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
-
+		if ($dateFormat = $this->getDateFormat()) {
+			$field->setConfig('dateformat', $dateFormat);
+			$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
+		}
 		return $fields;
 	}
 
@@ -95,10 +102,10 @@ class ListFilterDateRange extends ListFilterBase {
 	public function applyDateRange(SS_List $list, $start, $end) {
 		// Convert from alternate date format(s)
 		if ($start) {
-			$start = date('Y-m-d', DateTime::createFromFormat('!'.$this->getDateFormat(), $start)->getTimestamp());
+			$start = $this->convertDateFromDateFormat($start);
 		}
 		if ($end) {
-			$end = date('Y-m-d', DateTime::createFromFormat('!'.$this->getDateFormat(), $end)->getTimestamp());
+			$end = $this->convertDateFromDateFormat($end);
 		}
 
 		$startDateField = $this->StartDateField;
@@ -120,19 +127,43 @@ class ListFilterDateRange extends ListFilterBase {
 		return $list;
 	}
 
-	public function getDateFormat() {
-		// todo(Jake): replace with configurable
-		return 'd/m/Y';
-		/*$field = new DateField('Temp');
-		if ($field) {
-			$value = $field->getConfig('dateformat');
-			return $value;
+	public function convertDateFromDateFormat($date) {
+		if ($format === null) {
+			$format = $this->getDateFormat();
 		}
-		return Config::inst()->get('i18n', 'date_format');*/
+		if ($format) {
+			$dateTime = DateTime::createFromFormat('!'.$this->getDateFormat(), $start);
+			if ($dateTime === FALSE) {
+				throw new Exception('Failed to create DateTime from "'.$date.'" formatted as "'.$this->getDateFormat().'"');
+			}
+			return date('Y-m-d', $dateTime->getTimestamp());
+		} else {
+			return $date;
+		}
 	}
 
+	/**
+	 * Get the date format to use on the fields and show on the frontend.
+	 *
+	 * @return string
+	 */
+	public function getDateFormat() {
+		$dateFormat = $this->getField('DateFormat');
+		if (!$dateFormat) {
+			$dateFormat = $this->config()->default_dateformat;
+		}
+		return $dateFormat;
+	}
+
+	/**
+	 * Get the date format to use on the fields and show on the frontend.
+	 *
+	 * @return string
+	 */
 	public function getDateFormatAsJQuery() {
-		return DateField_View_JQuery::convert_iso_to_jquery_format($this->getDateFormat());
+		$dateFormat = $this->getDateFormat();
+		$result = DateField_View_JQuery::convert_iso_to_jquery_format($dateFormat);
+		return $result;
 	}
 
 	/**

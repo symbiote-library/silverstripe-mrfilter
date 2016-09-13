@@ -8,13 +8,17 @@
 	 */
 	$('.js-listfilter-filter').bind('ListFilterDateRange', function(e, records) {
 		function convertDateToTime(date, dateFormat) {
-			// Convert
-			// todo(Jake: remove non d/m/Y and test
-			if (dateFormat && (dateFormat === 'dd/mm/yy' || dateFormat === 'd/m/Y' || dateFormat === 'dd/mm/yyyy')) {
-				// todo(Jake): more robust date conversion
-				if (date) {
-					var dateBits = date.split('/');
+			if (date && dateFormat) {
+				// Convert from specific other date formats
+				var dateBits;
+				if (dateFormat === 'd/m/Y') {
+					dateBits = date.split('/');
 					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
+				} else if (dateFormat === 'd-m-Y') {
+					dateBits = date.split('-');
+					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
+				} else {
+					console.log('ListFilterDateRange: Unsupported dateFormat "'+dateFormat+'" configured.');
 				}
 			}
 			return Date.parse(date);
@@ -39,9 +43,6 @@
 				}
 			}
 		});
-		if (!dateFormat) {
-			console.log('data-dateformat attribute missing on DateField items');
-		}
 		if (!filterStartDate && !filterEndDate) {
 			return;
 		}
@@ -56,12 +57,12 @@
 			var record = records[r];
 			var fieldGroupIDs = record.FilterGroups;
 			if (typeof fieldGroupIDs[fieldGroupID] === 'undefined') {
-				console.log('Feature is missing FilterGroups['+fieldGroupID+'] data.');
+				console.log('ListFilterDateRange: Feature is missing FilterGroups['+fieldGroupID+'] data.');
 				return;
 			}
 			var values = fieldGroupIDs[fieldGroupID].value;
 			if (values.StartDate.length != values.EndDate.length) {
-				console.log('Invalid start date and end dates, mismatching array sizes.');
+				console.log('ListFilterDateRange: Invalid start date and end dates, mismatching array sizes.');
 				return;
 			}
 
