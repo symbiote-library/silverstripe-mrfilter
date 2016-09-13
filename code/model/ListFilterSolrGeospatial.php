@@ -29,6 +29,20 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	private static $default_radius = 20;
 
 	/**
+	 * Sort by the nearest to furthest if true.
+	 *
+	 * @var boolean
+	 */
+	private static $default_sort_by_nearest = false;
+
+	/**
+	 * If null, fallback to using 'default_sort_by_nearest'.
+	 *
+	 * @var boolean|null
+	 */
+	protected $sort_by_nearest = null;
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
@@ -81,6 +95,26 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	}
 
 	/**
+	 * Sort by the nearest to furthest if true.
+	 *
+	 * @return ListFilterSolrGeospatial
+	 */
+	public function setSortByNearest($bool) {
+		$this->sort_by_nearest = $bool;
+		return $this;
+	}
+
+	/**
+	 * @return boolean|null
+	 */
+	public function getSortByNearest() {
+		if ($this->sort_by_nearest === null) {
+			return $this->config()->default_sort_by_nearest;
+		}
+		return $this->sort_by_nearest;
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function applyFilter(SS_List $list, array $data) {
@@ -95,6 +129,9 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
 		$builder = $sharedFilter->getQueryBuilder();
 		$builder->restrictNearPoint(implode(',', $latLng), 'LatLng_p', $this->Radius());
+		if ($this->getSortByNearest()) {
+			$builder->sortBy('geodist()', 'ASC');
+		}
 		return $sharedFilter;
 	}
 
@@ -124,6 +161,8 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * Get users latitude and longitude
 	 *
+	 * NOTE: Expects 'return array($latitude, $longitude)'
+	 *
 	 * @return array
 	 */
 	public function getUserLatLng(array $data) {
@@ -141,6 +180,9 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	 * {@inheritdoc}
 	 */
 	public function getConfigError() {
+		if (!$this->Parent()->exists()) {
+			return false;
+		}
 		$class = $this->getListClassName();
 		$searchableFields = singleton('SolrSearchService')->getSearchableFieldsFor($class);
 		if (!isset($searchableFields['LatLng'])) {

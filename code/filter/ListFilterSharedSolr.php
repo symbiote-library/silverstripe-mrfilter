@@ -68,6 +68,14 @@ class ListFilterSharedSolr extends ListFilterShared {
 			return new ArrayList();
 		}
 		$list = $list->filter('ID', $ids);
+		// If the SolrQueryBuilder has sort parameters, then sort the list in the order
+		// of the IDs provided.
+		$params = $builder->getParams();
+		if (isset($params['sort']) && $params['sort']) {
+			$table = $list->dataClass();
+			$table .= (Versioned::get_reading_mode() == 'Stage.Live') ? '_Live' : '';
+			$list = $list->sort(array("FIELD({$table}.ID,".implode(',', $ids).")" => 'ASC'));
+		}
 		return $list;
 	}
 }
