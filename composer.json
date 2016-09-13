@@ -12,6 +12,10 @@
     "require": {
         "silverstripe/framework": "~3.1"
     },
+    "suggest": {
+        "silverstripe-australia/addressable": "Allows retrieval of an addresses latitude/longitude via Google geocoding API",
+        "silverstripe/solr": "Allows keyword searching in the filter and geospatial filtering based on users latitude and longitude."
+    },
     "extra": {
         "installer-name": "mrfilter"
     }

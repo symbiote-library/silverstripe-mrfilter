@@ -1,5 +1,8 @@
 <?php
 
+/**
+ * This extension typically goes on the listing page of the DataObject/Page you're showing.
+ */
 class ListFilterSetExtension extends Extension {
 	private static $has_one = array(
 		'ListFilterSet' => 'ListFilterSet',

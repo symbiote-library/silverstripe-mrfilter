@@ -119,8 +119,17 @@ class ListFilterForm extends Form {
 	 * @return FieldList
 	 */
 	public function getFormFields() {
+		$listFilterSet = $this->getRecord();
+		$allGetVars = $this->getVarData();
+		$getVarsForListFilters = $listFilterSet->unNamespaceFilterFields($allGetVars);
+
 		$fields = new FieldList();
-		foreach ($this->getRecord()->ListFilters() as $filterGroup) {
+		foreach ($listFilterSet->ListFilters() as $filterGroup) {
+			$getVars = array();
+			if (isset($getVarsForListFilters[$filterGroup->ID])) {
+				$getVars = $getVarsForListFilters[$filterGroup->ID];
+			}
+			$filterGroup->init($getVars);
 			$compositeField = ListFilterCompositeField::create($filterGroup);
 			$fields->push($compositeField);
 		}
@@ -167,7 +176,10 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function getVarData() {
-		$data = $this->request->getVars();
+		$data = array();
+		if ($this->request) {
+			$data = $this->request->getVars();
+		}
 		if (!$data) {
 			// Fallback to controller
 			$data = $this->controller->getRequest()->getVars();
@@ -189,13 +201,19 @@ class ListFilterForm extends Form {
 	 */
 	public function Listing(SS_List $list = null) {
 		if ($list === null) {
-			$list = $this->getRecord()->PaginatedFilteredList($this->getVarData());
+			$list = $this->getRecord()->PaginatedFilteredList($this->getVarData(), $this);
 		}
 		// todo(Jake): get class ancestry for rendering *_ListFilterListing
 		$result = $this->customise(array(
 			'Results' => $list,
 		))->renderWith(array($list->dataClass().'_ListFilterListing', 'ListFilterListing'));
 		$result->Items = $list;
+		$result->Count = $list->getIterator()->count();
+		if ($list instanceof PaginatedList) {
+			$result->TotalItems = $list->count();
+		} else {
+			$result->TotalItems = $result->Count;
+		}
 		return $result;
 	}
 
@@ -203,7 +221,8 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function FilterBackendData($data = null) {
-		if (!$this->getWidget()) {
+		$widget = $this->getWidget();
+		if (!$widget) {
 			// Don't send back backend data if there is no widget configured
 			// to use it.
 			return;
@@ -211,7 +230,8 @@ class ListFilterForm extends Form {
 		if ($data === null) {
 			$data = $this->getVarData();
 		}
-		$filterGroupData = $this->getRecord()->FilterBackendData($data);
+		$listFilterSet = $this->getRecord();
+		$filterGroupData = $listFilterSet->FilterBackendData($data, $widget);
 		return $filterGroupData;
 	}
 
@@ -263,14 +283,24 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function doGetListing_Ajax($data) {
-		$list = $this->getRecord()->PaginatedFilteredList($data);
+		$list = $this->getRecord()->PaginatedFilteredList($data, $this);
 		$template = $this->Listing($list);
 		$result = array();
 		$filterGroupData = $this->FilterBackendData($data);
 		if ($filterGroupData !== null) {
 			$result['FilterGroups'] = $filterGroupData;
 		}
-		$result['Count'] = $list->count();
+		$count = 0;
+		foreach ($list as $r) {
+			++$count;
+		}
+		// NOTE(Jake): getIterator() ensures PaginatedList only returns the ->limit() amount in pagination
+		$result['Count'] = $list->getIterator()->count();
+		if ($list instanceof PaginatedList) {
+			$result['TotalItems'] = $list->getTotalItems();
+		} else {
+			$result['TotalItems'] = $result['Count'];
+		}
 		$result['Template'] = $template;
 		if (count($result) === 1) {
 			// Return raw string/template if 

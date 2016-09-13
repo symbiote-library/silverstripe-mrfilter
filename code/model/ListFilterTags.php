@@ -85,6 +85,9 @@ class ListFilterTags extends ListFilterBase {
 			if ($list instanceof SS_List) {
 				$list = $list->map('Title');
 			}
+			if ($list instanceof SS_Map) {
+				$list = $list->toArray();
+			}
 			return 'Tags: '.implode(', ', $list);
 		}
 	}

@@ -37,6 +37,15 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	private static $default_ajax_disabled = false;
 
 	/**
+	 * Uses a basic 'LastEdited' check against the list for caching the 'getFeatureCollection'
+	 * function.
+	 *
+	 * @var boolean
+	 */
+	// todo(Jake): easy/simple cache for features
+	//private static $caching_enabled = false;
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function __construct() {
@@ -87,6 +96,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return array
 	 */
 	public function getFeatureCollection() {
+		//$caching_enabled = $this->config()->caching_enabled;
+
 		$list = $this->getList();
 		if (!$list) {
 			// NOTE(Jake): Ensures if any filters are applied with no user input, that they

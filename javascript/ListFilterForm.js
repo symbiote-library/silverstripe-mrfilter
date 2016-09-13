@@ -30,12 +30,14 @@
 			},
 			data: $form.serialize()
         }).done(function(data) {
-        	var template, filterGroups, count;
+        	var template, filterGroups, count, totalItems;
         	if (typeof data === 'object') {
         		filterGroups = data.FilterGroups;
         		template = data.Template;
         		count = data.Count;
+        		totalItems = data.TotalItems;
         	} else {
+        		totalItems = null;
         		count = null;
         		filterGroups = null;
         		template = data;
@@ -61,6 +63,13 @@
 	        		$relatedListingCount.html(count);
 	        		var $globalListingCount = $('.js-listfilter-listing-count:not([data-listfilter-id])');
 	        		$globalListingCount.html(count);
+	        	}
+	        	if (totalItems !== null) {
+	        		// Update records returned count
+	        		var $relatedListingTotal = $('.js-listfilter-listing-totalitems[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+	        		$relatedListingTotal.html(totalItems);
+	        		var $globalListingTotal = $('.js-listfilter-listing-totalitems:not([data-listfilter-id])');
+	        		$globalListingTotal.html(totalItems);
 	        	}
         	}
         	if (filterGroups !== null) {

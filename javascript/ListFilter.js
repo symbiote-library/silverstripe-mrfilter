@@ -8,13 +8,17 @@
 	 */
 	$('.js-listfilter-filter').bind('ListFilterDateRange', function(e, records) {
 		function convertDateToTime(date, dateFormat) {
-			// Convert
-			// todo(Jake: remove non d/m/Y and test
-			if (dateFormat && (dateFormat === 'dd/mm/yy' || dateFormat === 'd/m/Y' || dateFormat === 'dd/mm/yyyy')) {
-				// todo(Jake): more robust date conversion
-				if (date) {
-					var dateBits = date.split('/');
+			if (date && dateFormat) {
+				// Convert from specific other date formats
+				var dateBits;
+				if (dateFormat === 'd/m/Y') {
+					dateBits = date.split('/');
 					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
+				} else if (dateFormat === 'd-m-Y') {
+					dateBits = date.split('-');
+					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
+				} else {
+					console.log('ListFilterDateRange: Unsupported dateFormat "'+dateFormat+'" configured.');
 				}
 			}
 			return Date.parse(date);
@@ -39,9 +43,6 @@
 				}
 			}
 		});
-		if (!dateFormat) {
-			console.log('data-dateformat attribute missing on DateField items');
-		}
 		if (!filterStartDate && !filterEndDate) {
 			return;
 		}
@@ -56,12 +57,12 @@
 			var record = records[r];
 			var fieldGroupIDs = record.FilterGroups;
 			if (typeof fieldGroupIDs[fieldGroupID] === 'undefined') {
-				console.log('Feature is missing FilterGroups['+fieldGroupID+'] data.');
+				console.log('ListFilterDateRange: Feature is missing FilterGroups['+fieldGroupID+'] data.');
 				return;
 			}
 			var values = fieldGroupIDs[fieldGroupID].value;
 			if (values.StartDate.length != values.EndDate.length) {
-				console.log('Invalid start date and end dates, mismatching array sizes.');
+				console.log('ListFilterDateRange: Invalid start date and end dates, mismatching array sizes.');
 				return;
 			}
 
@@ -149,6 +150,74 @@
 				isInFilter = isInFilter || (selectedFilters !== null && typeof selectedFilters[fieldGroupID][value] !== 'undefined');
 			}
 			if (isInFilter) {
+				visibleRecords[record.ID] = record;
+			}
+		}
+		return visibleRecords;
+	});
+
+	/**
+	 * Filters the records by whether or not their in range of the provided latitude
+	 * or longitude.
+	 *
+	 * @return {array}
+	 */
+	$('.js-listfilter-filter').bind('ListFilterLatLngRadius', function(e, records) {
+		function getDistanceInKmFromLatLngRadians(latitude1, longitude1, latitude2, longitude2) { 
+			// Reference: http://stackoverflow.com/questions/12439801/how-to-check-if-a-certain-coordinates-fall-to-another-coordinates-radius-using-p
+		    var dLat = latitude2 - latitude1;  
+		    var dLon = longitude2 - longitude1;  
+
+		    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(latitude1) * Math.cos(latitude2) * Math.sin(dLon/2) * Math.sin(dLon/2);  
+		    var c = 2 * Math.asin(Math.sqrt(a));
+		    var result = 6371 * c;
+
+		    return result;  
+		}
+
+		var fieldGroupID = $(this).data('fieldgroup-id');
+		var config = $(this).data('fieldgroup-config');
+		if (typeof config.Radius === 'undefined') {
+			console.log('"Radius" config variable is missing.');
+		}
+		var radiusInKm = parseInt(config.Radius, 10);
+
+		var userLat = 0, 
+			userLng = 0;
+		var result = $(this).triggerHandler('getUserLatLng');
+		if (typeof result !== 'undefined' && result) {
+			userLat = result.Lat;
+			userLng = result.Lng;
+		} else {
+			if (result === false) {
+				// Allow the user-code to disable filtering by returning false with 'getUserLatLng'
+				return null;
+			}
+			if (typeof config.Lat !== 'undefined' && typeof config.Lng !== 'undefined' && config.Lat && config.Lng) {
+				userLat = config.Lat;
+				userLng = config.Lng;
+			}
+		}
+
+		if (userLat === 0 || userLng === 0) {
+			return null;
+		}
+
+		// Degrees to Radians
+		userLat *= 0.017453292519943295;
+		userLng *= 0.017453292519943295;
+
+		var visibleRecords = {};
+		for (var r = 0; r < records.length; ++r) {
+			var record = records[r];
+			var fieldGroupIDs = record.FilterGroups;
+			if (typeof fieldGroupIDs[fieldGroupID] === 'undefined') {
+				console.log('Feature is missing FilterGroups['+fieldGroupID+'] data.');
+				return;
+			}
+			var values = fieldGroupIDs[fieldGroupID].value;
+			var distanceInKm = getDistanceInKmFromLatLngRadians(userLat, userLng, values.Lat, values.Lng);
+			if (distanceInKm < radiusInKm) {
 				visibleRecords[record.ID] = record;
 			}
 		}
