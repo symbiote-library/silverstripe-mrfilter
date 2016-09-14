@@ -70,9 +70,11 @@ class ListFilterForm extends Form {
 
 		// Workaround issue where loadDataFrom() doesn't handle CheckboxSetField.
 		$dataFields = $this->Fields()->dataFields();
-		foreach ($dataFields as $fieldName => $dataField) {
-			if ($dataField instanceof CheckboxSetField && isset($formData[$fieldName])) {
-				$dataField->setValue(array_keys($formData[$fieldName]));
+		if ($dataFields) {
+			foreach ($dataFields as $fieldName => $dataField) {
+				if ($dataField instanceof CheckboxSetField && isset($formData[$fieldName])) {
+					$dataField->setValue(array_keys($formData[$fieldName]));
+				}
 			}
 		}
 	}

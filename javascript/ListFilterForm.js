@@ -76,7 +76,9 @@
         		$form.data('listfilter-backend', filterGroups);
         		$form.trigger('ListFilterFormUpdate');
         	}
+        	$form.trigger('ListFilterAJAXDone', [data]);
         }).fail(function(x, e, exception) {
+        	$form.trigger('ListFilterAJAXFail', [x, e, exception]);
             if (debug) {
 				if(x.status === 0){
 				    alert('You are offline!!\n Please Check Your Network.');
