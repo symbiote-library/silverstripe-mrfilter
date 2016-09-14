@@ -124,7 +124,7 @@ class ListFilterForm extends Form {
 		$getVarsForListFilters = $listFilterSet->unNamespaceFilterFields($allGetVars);
 
 		$fields = new FieldList();
-		foreach ($listFilterSet->ListFilters() as $filterGroup) {
+		foreach ($listFilterSet->ListFiltersPersist() as $filterGroup) {
 			$getVars = array();
 			if (isset($getVarsForListFilters[$filterGroup->ID])) {
 				$getVars = $getVarsForListFilters[$filterGroup->ID];

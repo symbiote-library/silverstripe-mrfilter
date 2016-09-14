@@ -107,7 +107,7 @@ class ListFilterSet extends DataObject {
 	 *
 	 * @return ArrayList
 	 */
-	public function ListFilters() {
+	public function ListFiltersPersist() {
 		if ($this->listFilters !== null) {
 			return $this->listFilters;
 		}
@@ -157,7 +157,7 @@ class ListFilterSet extends DataObject {
 	 */
 	public function FilterData(DataObject $record) {
 		$result = array();
-		foreach ($this->ListFilters() as $filterGroup) {
+		foreach ($this->ListFiltersPersist() as $filterGroup) {
 			$data = $filterGroup->getFilterData($record);
 			if ($data !== null && (!isset($data['value']) || $data['value'] !== null)) {
 				$result[$filterGroup->ID] = $data;
@@ -180,7 +180,7 @@ class ListFilterSet extends DataObject {
 
 		$result = array();
 		$baseList = $this->owner->BaseList();
-		foreach ($this->owner->ListFilters() as $filterGroup) {
+		foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
 			$id = (int)$filterGroup->ID;
 			$filterGroupData = isset($allFilterGroupData[$id]) ? $allFilterGroupData[$id] : array();
 			$filterResultData = $filterGroup->getFilterBackendData($baseList, $filterGroupData);
@@ -203,7 +203,7 @@ class ListFilterSet extends DataObject {
 		$sharedFilters = array();
 
 		// Apply filter based on data sent through
-		foreach ($this->owner->ListFilters() as $filterGroup) {
+		foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
 			$filterGroupData = isset($allFilterGroupData[$filterGroup->ID]) ? $allFilterGroupData[$filterGroup->ID] : array();
 			$filterResult = $filterGroup->applyFilter($list, $filterGroupData);
 			if ($filterResult !== null) {
