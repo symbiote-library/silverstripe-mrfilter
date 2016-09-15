@@ -285,7 +285,7 @@ class ListFilterForm extends Form {
 	 * @return string
 	 */
 	public function Link($action = null) {
-		return Controller::join_links(Director::absoluteBaseURL(), $this->controller->Link(), $this->name, $action);
+		return Controller::join_links($this->controller->Link(), $this->name, $action);
 	}
 
 	/** 

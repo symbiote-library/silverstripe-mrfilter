@@ -4,9 +4,6 @@ if (!class_exists('TaxonomyTerm')) {
 	return;
 }
 
-/**
- * @author marcus
- */
 class ListFilterTaxonomyTerms extends ListFilterTags 
 {
     private static $many_many = array(
@@ -31,11 +28,14 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 		return $fields;
 	}
 
+	/**
+	 * {@inheritdoc}
+	 */
 	public function getComponentRelationName() {
 		$componentRelationNames = ListFilterUtility::get_component_names_using_class($this->getListClassName(), 'TaxonomyTerm');
 		if (count($componentRelationNames) > 1) {
 			// todo(Jake): maybe make dropdown to select a specific relation for these cases.
-			throw new Exception('Multiple many_many relationships with "FusionTag"');
+			throw new Exception('Multiple many_many relationships with "TaxonomyTerm"');
 		}
 		$componentRelationName = reset($componentRelationNames);
 		return $componentRelationName;

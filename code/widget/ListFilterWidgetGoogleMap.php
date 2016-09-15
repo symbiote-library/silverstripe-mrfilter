@@ -233,10 +233,10 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		$attributes = array_merge($attributes, array(
 			'map-dependencies' => array(
 				'markerclusterer' => array(
-					'script' => '/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
+					'script' => Director::absoluteBaseURL().'/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
 					'options' => array(
 						// For more options, see: https://web.archive.org/web/20160829003318/https://googlemaps.github.io/js-marker-clusterer/docs/reference.html
-						'imagePath' => ListFilterUtility::MODULE_DIR.'/images/thirdparty/markerclusterer/m',
+						'imagePath' => Director::absoluteBaseURL().'/'.ListFilterUtility::MODULE_DIR.'/images/thirdparty/markerclusterer/m',
 						//'gridSize' => 50, 
 						//'maxZoom' => 12,
 					),
