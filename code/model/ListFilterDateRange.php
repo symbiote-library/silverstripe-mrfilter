@@ -130,7 +130,7 @@ class ListFilterDateRange extends ListFilterBase {
 	public function convertDateFromDateFormat($date) {
 		$format = $this->getDateFormat();
 		if ($format) {
-			$dateTime = DateTime::createFromFormat('!'.$this->getDateFormat(), $start);
+			$dateTime = DateTime::createFromFormat('!'.$this->getDateFormat(), $date);
 			if ($dateTime === FALSE) {
 				throw new Exception('Failed to create DateTime from "'.$date.'" formatted as "'.$this->getDateFormat().'"');
 			}

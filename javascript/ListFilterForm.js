@@ -17,19 +17,43 @@
 	});
 
 	function formSubmit(e) {
-		var $form = $(this);
-
 		e.preventDefault();
+		var $form = $(this);
+		if ($form.data('is-loading') === true) {
+			return;
+		}
+		// Update listing areas specifically using the same 'data-listfilter-id'
+		var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+		// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
+		var $globalListing = $('.js-listfilter-listing:not([data-listfilter-id])');
+
+		// Add class to signify its loading
+		// todo(Jake): Make state class below configurable
+		var loadingClass = 'is-listfilter-loading';
+		var loadingElements = [];
+		if (loadingClass) {
+			loadingElements.push($form);
+			loadingElements.push($relatedListing);
+			loadingElements.push($globalListing);
+		}
+		for (var l = 0; l < loadingElements.length; ++l) {
+			$(loadingElements[l]).addClass(loadingClass);
+		}
+
 		$.support.cors = true;
+		$form.trigger('ListFilterAJAXBefore');
+		$form.data('is-loading', true);
 		$.ajax({
 			type: 'GET',
 			url: $form.attr('action'),
 			crossDomain: true,
 			headers: {
+				// Force sending of header for IE7/8
 			    'X-Requested-With': 'XMLHttpRequest'
 			},
 			data: $form.serialize()
-        }).done(function(data) {
+        }).done(function(data, textStatus, jqXHR) {
+        	$form.data('is-loading', false);
         	var template, filterGroups, count, totalItems;
         	if (typeof data === 'object') {
         		filterGroups = data.FilterGroups;
@@ -49,10 +73,8 @@
         		formsInit();
         	} else {
         		// Update listing areas specifically using the same 'data-listfilter-id'
-	        	var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 	        	$relatedListing.html(template);
 	        	// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
-	        	var $globalListing = $('.js-listfilter-listing:not([data-listfilter-id])');
 	        	$globalListing.html(template);
 	        	if ($relatedListing.length + $globalListing.length === 0) {
 	        		debugLog('Missing .js-listfilter-listing element. Unable to put form result anywhere.');
@@ -76,8 +98,9 @@
         		$form.data('listfilter-backend', filterGroups);
         		$form.trigger('ListFilterFormUpdate');
         	}
-        	$form.trigger('ListFilterAJAXDone', [data]);
+        	$form.trigger('ListFilterAJAXDone', [data, textStatus, jqXHR]);
         }).fail(function(x, e, exception) {
+        	$form.data('is-loading', false);
         	$form.trigger('ListFilterAJAXFail', [x, e, exception]);
             if (debug) {
 				if(x.status === 0){
@@ -96,6 +119,12 @@
 					alert('Unknown Error.\n'+x.responseText);
 				}
          	}
+        }).complete(function(dataOrJqXHR, textStatus, jqXHROrErrorThrown) {
+        	$form.data('is-loading', false);
+        	for (var l = 0; l < loadingElements.length; ++l) {
+				$(loadingElements[l]).removeClass(loadingClass);
+			}
+        	$form.trigger('ListFilterAJAXComplete', [dataOrJqXHR, textStatus, jqXHROrErrorThrown]);
         });
 	}
 
