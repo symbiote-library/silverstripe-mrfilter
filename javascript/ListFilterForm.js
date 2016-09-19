@@ -132,7 +132,7 @@
 		var $filterGroupHolder = $(this).parents('.js-listfilter-filter').first();
 		var $form = $(this.form);
 		if (!$filterGroupHolder.length) {
-			debugLog('Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified incorrectly.');
+			debugLog("Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified incorrectly.\n\nThis is also known to occur when CompositeField_holder.ss is put into an /Includes/ folder, rather than /forms/. Old versions of Unclecheese's Display Logic module will do this and break this module.");
 			return;
 		}
 		$form.trigger('ListFilterFormUpdate');
