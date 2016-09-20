@@ -20,10 +20,13 @@ class ListFilterFusionTags extends ListFilterTags {
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
+		$self = &$this;
+		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+			$fields->removeByName(array('FusionTags'));
+			$source = FusionTag::get()->map('ID', 'Title')->toArray();
+			$fields->addFieldToTab('Root.Main', ListboxField::create('FusionTags', 'Tags', $source)->setMultiple(true));
+		});
 		$fields = parent::getCMSFields();
-		$fields->removeByName(array('FusionTags'));
-		$source = FusionTag::get()->map('ID', 'Title')->toArray();
-		$fields->addFieldToTab('Root.Main', ListboxField::create('FusionTags', 'Tags', $source)->setMultiple(true));
 		return $fields;
 	}
 

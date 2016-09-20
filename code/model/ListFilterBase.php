@@ -46,12 +46,15 @@ class ListFilterBase extends DataObject {
 	 * @return FieldList
 	 */
 	public function getCMSFields() {
+		$self = &$this;
+		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+			$fields->removeByName(array('Sort', 'ParentID'));
+			$error = $self->getContextSummaryField(true);
+			if ($error) {
+				$fields->insertBefore(LiteralField::create('ConfigError_Literal', $self->getContextSummaryField(true)), 'Title');
+			}
+		});
 		$fields = parent::getCMSFields();
-		$error = $this->getContextSummaryField(true);
-		if ($error) {
-			$fields->insertBefore(LiteralField::create('ConfigError_Literal', $this->getContextSummaryField(true)), 'Title');
-		}
-		$fields->removeByName(array('Sort', 'ParentID'));
 		return $fields;
 	}
 

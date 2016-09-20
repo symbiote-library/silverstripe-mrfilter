@@ -27,14 +27,6 @@ class ListFilterTags extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getCMSFields() {
-		$fields = parent::getCMSFields();
-		return $fields;
-	}
-
-	/**
-	 * {@inheritdoc}
-	 */
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
 		$tags = $this->SelectableTags();
