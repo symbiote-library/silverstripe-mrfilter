@@ -229,6 +229,11 @@ class ListFilterSet extends DataObject {
 				}
 			}
 		}
+        
+        // finally, allow the filters to analyse the final list
+        foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
+            $filterGroup->finaliseFilter($list);
+        }
 
 		$this->setCaller(null);
 		return $list;
