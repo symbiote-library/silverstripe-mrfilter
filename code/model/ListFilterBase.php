@@ -126,6 +126,13 @@ class ListFilterBase extends DataObject {
 	public function applyFilter(SS_List $list, array $data) {
 		throw new Exception('Missing "'.__FUNCTION__.'" implementation for "'.$this->class.'"');
 	}
+    
+    /**
+     * @param SS_List $list
+     */
+    public function finaliseFilter(SS_List $list) {
+        
+    }
 
 	/**
 	 * Return a ListFilterShared object to share between ListFilterBase objects.

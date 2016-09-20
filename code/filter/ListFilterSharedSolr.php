@@ -9,6 +9,12 @@ class ListFilterSharedSolr extends ListFilterShared {
 	 * @var SolrQueryBuilder
 	 */
 	protected $builder = null;
+    
+    /**
+     *
+     * @var SolrResultSet
+     */
+    protected $resultSet = null;
 
 	/**
 	 * @return SolrQueryBuilder
@@ -46,8 +52,8 @@ class ListFilterSharedSolr extends ListFilterShared {
 		 * @var $solr SolrSearchService
 		 */
 		$solr = singleton('SolrSearchService');
-		$solrResultSet = $solr->query($builder);
-		$solrResults = $solrResultSet->getResult();
+		$this->resultSet = $solr->query($builder);
+		$solrResults = $this->resultSet->getResult();
 		if (!isset($solrResults->response->docs)) {
 			$errorMessage = __CLASS__.': Missing "SolrResultSet::response->docs" from Solr. Has Solr been started?';
 			if (Director::isDev()) {
@@ -78,4 +84,12 @@ class ListFilterSharedSolr extends ListFilterShared {
 		}
 		return $list;
 	}
+    
+    /**
+     * 
+     * @return SolrResultSet
+     */
+    public function getResultSet() {
+        return $this->resultSet;
+    }
 }

@@ -18,6 +18,13 @@ class ListFilterForm extends Form {
 	 * @var ListFilterSet
 	 */
 	protected $record = null;
+    
+    /**
+     * The current result set
+     *
+     * @var SS_List
+     */
+    protected $resultList = null;
 
 	/** 
 	 * @var ListFilterWidget
@@ -77,6 +84,8 @@ class ListFilterForm extends Form {
 				}
 			}
 		}
+        
+        $this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
 	}
 
 	/**
@@ -233,7 +242,7 @@ class ListFilterForm extends Form {
 	 */
 	public function Listing(SS_List $list = null) {
 		if ($list === null) {
-			$list = $this->getRecord()->PaginatedFilteredList($this->getVarData(), $this);
+			$list = $this->resultList;
 		}
 		// todo(Jake): get class ancestry for rendering *_ListFilterListing
 		$result = $this->customise(array(
@@ -315,7 +324,7 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function doGetListing_Ajax($data) {
-		$list = $this->getRecord()->PaginatedFilteredList($data, $this);
+		$list = $this->resultList;
 		$template = $this->Listing($list);
 		$result = array();
 		$filterGroupData = $this->FilterBackendData($data);
