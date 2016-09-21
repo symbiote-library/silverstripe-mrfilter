@@ -18,13 +18,13 @@ class ListFilterForm extends Form {
 	 * @var ListFilterSet
 	 */
 	protected $record = null;
-    
-    /**
-     * The current result set
-     *
-     * @var SS_List
-     */
-    protected $resultList = null;
+	
+	/**
+	 * The current result set
+	 *
+	 * @var SS_List
+	 */
+	protected $resultList = null;
 
 	/** 
 	 * @var ListFilterWidget
@@ -84,8 +84,10 @@ class ListFilterForm extends Form {
 				}
 			}
 		}
-        
-        $this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
+		
+		// Execute list at this point, this allows 'finaliseFilter' to modify any form fields when
+		// necessary (ie. ListFilterSolrFacet)
+		$this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
 	}
 
 	/**
@@ -153,11 +155,11 @@ class ListFilterForm extends Form {
 	 */
 	public function getFormActions() {
 		$actions = new FieldList(
-            $submitButton = FormAction::create('doGetListing', 'Search')
-                ->setUseButtonTag($this->config()->submit_use_button_tag)
-                ->addExtraClass($this->config()->submit_classes)
-        );
-        return $actions;
+			$submitButton = FormAction::create('doGetListing', 'Search')
+				->setUseButtonTag($this->config()->submit_use_button_tag)
+				->addExtraClass($this->config()->submit_classes)
+		);
+		return $actions;
 	}
 
 	/**

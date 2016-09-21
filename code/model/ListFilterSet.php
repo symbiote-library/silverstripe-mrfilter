@@ -230,7 +230,7 @@ class ListFilterSet extends DataObject {
 			}
 		}
         
-        // finally, allow the filters to analyse the final list
+        // Allow the filters to analyse the final list and update itself accordingly
         foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
             $filterGroup->finaliseFilter($list);
         }

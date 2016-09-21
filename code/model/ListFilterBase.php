@@ -128,10 +128,12 @@ class ListFilterBase extends DataObject {
 	}
     
     /**
+     * Allow inspection of SS_List and shared filters to change current objects state.
+     * ie. ListFilterSolrFacet gets facets from the 
+     *
      * @param SS_List $list
      */
     public function finaliseFilter(SS_List $list) {
-        
     }
 
 	/**

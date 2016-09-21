@@ -9,12 +9,12 @@ class ListFilterSharedSolr extends ListFilterShared {
 	 * @var SolrQueryBuilder
 	 */
 	protected $builder = null;
-    
-    /**
-     *
-     * @var SolrResultSet
-     */
-    protected $resultSet = null;
+	
+	/**
+	 *
+	 * @var SolrResultSet
+	 */
+	protected $resultSet = null;
 
 	/**
 	 * @return SolrQueryBuilder
@@ -84,12 +84,11 @@ class ListFilterSharedSolr extends ListFilterShared {
 		}
 		return $list;
 	}
-    
-    /**
-     * 
-     * @return SolrResultSet
-     */
-    public function getResultSet() {
-        return $this->resultSet;
-    }
+	
+	/**
+	 * @return SolrResultSet
+	 */
+	public function getResultSet() {
+		return $this->resultSet;
+	}
 }

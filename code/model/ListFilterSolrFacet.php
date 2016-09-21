@@ -5,28 +5,30 @@ if (!class_exists('SolrSearchService')) {
 }
 
 class ListFilterSolrFacet extends ListFilterBase {
-    
-    private static $db = array(
-        'FacetOn'       => 'Varchar',
-    );
-    
-    protected $filterList;
-    
+	private static $db = array(
+		'FacetOn'	=> 'Varchar',
+	);
+	
+	/**
+	 * @var array
+	 */
+	protected $facetValuesField = array();
+	
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getFilterFields() {
-        $fields = parent::getFilterFields();
-        
+		$fields = parent::getFilterFields();
+		
 		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
 		$builder = $sharedFilter->getQueryBuilder();
-        
-        if (!$this->filterList) {
-            $this->filterList = CheckboxSetField::create('FacetValues', $this->Title);
-        }
-        
-        $fields->push($this->filterList);
-        
+		
+		if (!$this->facetValuesField) {
+			$this->facetValuesField = CheckboxSetField::create('FacetValues', $this->Title);
+		}
+		
+		$fields->push($this->facetValuesField);
+		
 		return $fields;
 	}
 
@@ -34,48 +36,62 @@ class ListFilterSolrFacet extends ListFilterBase {
 	 * {@inheritdoc}
 	 */
 	public function applyFilter(SS_List $list, array $data) {
-        $sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
+		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
 		$builder = $sharedFilter->getQueryBuilder();
-        if (strlen($this->FacetOn)) {
-            $builder->addFacetFields(array($this->FacetOn));
-        }
+		if (strlen($this->FacetOn)) {
+			$builder->addFacetFields(array($this->FacetOn));
+		}
 
 		if (isset($data['FilterGroup']) && is_array($data['FilterGroup'])) {
-            $selected = array_keys($data['FilterGroup']);
-            $filter = $this->FacetOn .':"' . implode('" ' . $this->FacetOn .':"', $selected) . '"';
-            
-            $builder->addFilter($filter);
+			$selected = array_keys($data['FilterGroup']);
+			$filter = $this->FacetOn .':"' . implode('" ' . $this->FacetOn .':"', $selected) . '"';
+			
+			$builder->addFilter($filter);
 		}
 		
 		return $sharedFilter;
 	}
-    
-    public function finaliseFilter(SS_List $list) {
-        $sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
-        $result = $sharedFilter->getResultSet();
-        if ($result) {
-            $facets = $result->getFacets();
-            if (isset($facets[$this->FacetOn])) {
-                $source = array();
-                foreach ($facets[$this->FacetOn] as $facet) {
-                    $source[$facet->Name] = $facet->Name . ' (' . $facet->Count . ')';
-                }
-                $this->filterList->setSource($source);
-            }
-        }
-    }
+
+	/**
+	 * {@inheritdoc}
+	 */
+	// todo(Jake): Copy behaviour from ListFilterSolrKeyword
+	/*public function getFilterBackendData(SS_List $list, array $data) {
+
+	}*/
+	
+	/**
+	 * {@inheritdoc}
+	 */
+	public function finaliseFilter(SS_List $list) {
+		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
+		$result = $sharedFilter->getResultSet();
+		if ($result) {
+			$facets = $result->getFacets();
+			if (isset($facets[$this->FacetOn])) {
+				$source = array();
+				foreach ($facets[$this->FacetOn] as $facet) {
+					$source[$facet->Name] = $facet->Name . ' (' . $facet->Count . ')';
+				}
+				// NOTE(Jake): Update facets field after the Solr query has been executed as the query results
+				// 			   contain the available facets.
+				$this->facetValuesField->setSource($source);
+			}
+		}
+	}
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function getFilterBackendData(SS_List $list, array $data) {
-        return null;
+		return null;
 	}
 
 	/**
 	 * {@inheritdoc}
 	 */
-//	public function getJavascriptCallback() {
-//		return 'ListFilterGroupIDs';
-//	}
+	// todo(Jake): Copy behaviour from ListFilterSolrKeyword
+	/*public function getJavascriptCallback() {
+		return 'ListFilterGroupIDs';
+	}*/
 }
