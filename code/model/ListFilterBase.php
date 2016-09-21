@@ -64,8 +64,8 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return string
 	 */
-	public function getListClassName() {
-		return $this->Parent()->ListClassName;
+	public function getListClass() {
+		return $this->Parent()->ListClass;
 	}
 
 	/** 
@@ -201,9 +201,19 @@ class ListFilterBase extends DataObject {
 	public function getContextSummaryField($errorOnly = false) {
 		$html = new HTMLText('ContextSummaryField');
 
+		// Get class name, if its a 'special case' type, blank it out.
+		$class = '';
+		$parent = $this->Parent();
+		if ($parent && $parent->exists()) {
+			$class = $parent->ListClassName;
+			if ($class && $class[0] === '(') {
+				$class = '';
+			}
+		}
+
 		// Set color if error
 		$color = '';
-		$error = $this->getConfigError();
+		$error = $this->getConfigError($class);
 		if ($error) {
 			if ($error === true || $error === 1) {
 				$error = 'Error';
@@ -243,7 +253,7 @@ class ListFilterBase extends DataObject {
 	 *
 	 * @return bool|string
 	 */
-	public function getConfigError() {
+	public function getConfigError($class) {
 		return false;
 	}
 }

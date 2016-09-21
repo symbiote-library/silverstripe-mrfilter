@@ -26,15 +26,18 @@ class ListFilterDateRange extends ListFilterBase {
 	public function getCMSFields() {
 		$self = &$this;
 		$self->beforeUpdateCMSFields(function($fields) use ($self) {
-			$class = $self->getListClassName();
-			$dbFields = array();
-			if (class_exists($class)) {
-				$dbFields = array_keys($class::config()->db);
-				$dbFields = ArrayLib::valuekey($dbFields);
-				$dbFields[''] = '(Please select a field)';
-				$dbFields['ID'] = 'ID';
-				$dbFields['Created'] = 'Created';
-				$dbFields['LastEdited'] = 'LastEdited';
+			// todo(Jake): Make this better when using special 'Children' list.
+			$class = $self->getListClass();
+			$dbFields = array(
+				'' => '(Please select a field)',
+				'ID' => 'ID',
+				'Created' => 'Created',
+				'LastEdited' => 'LastEdited',
+			);
+			if ($class && class_exists($class)) {
+				$classDbFields = array_keys($class::config()->db);
+				$classDbFields = ArrayLib::valuekey($classDbFields);
+				$dbFields = array_merge($dbFields, $classDbFields);
 			}
 			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('StartDateField', 'Start Date Field', $dbFields));
 			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('EndDateField', 'End Date Field', $dbFields));

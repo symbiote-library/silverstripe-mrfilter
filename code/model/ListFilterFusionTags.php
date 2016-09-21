@@ -31,7 +31,7 @@ class ListFilterFusionTags extends ListFilterTags {
 	}
 
 	public function getComponentRelationName() {
-		$componentRelationNames = ListFilterUtility::get_component_names_using_class($this->getListClassName(), 'FusionTag');
+		$componentRelationNames = ListFilterUtility::get_component_names_using_class($this->getListClass(), 'FusionTag');
 		if (count($componentRelationNames) > 1) {
 			// todo(Jake): maybe make dropdown to select a specific relation for these cases.
 			throw new Exception('Multiple many_many relationships with "FusionTag"');

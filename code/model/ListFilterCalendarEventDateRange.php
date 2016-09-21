@@ -102,7 +102,7 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 		$list = $list->filter(array('ID' => $dateTimeIDs));
 
 		// Sort events by closest to furthest away
-		$table = 'CalendarEvent';
+		$table = ClassInfo::baseDataClass($list->dataClass());
 		$table .= (Versioned::get_reading_mode() == 'Stage.Live') ? '_Live' : '';
 		$list = $list->sort(array("FIELD({$table}.ID,".implode(',', $dateTimeIDs).")" => 'ASC'));
 		return $list;
@@ -111,10 +111,9 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getConfigError() {
-		$class = $this->getListClassName();
-		if ($this->isInDB() && !is_a($class, 'CalendarEvent', true)) {
-			return 'Incorrectly configured. List Type must be "CalendarEvent" or subclass.';
+	public function getConfigError($class) {
+		if ($this->isInDB() && $class && !is_a($class, 'CalendarEvent', true)) {
+			return 'Incorrectly configured. List Type must be "CalendarEvent" or subclass. List is using class "'.$class.'".';
 		}
 	}
 

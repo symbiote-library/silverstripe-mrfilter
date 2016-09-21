@@ -48,7 +48,7 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 	 * {@inheritdoc}
 	 */
 	public function getComponentRelationName() {
-		$componentRelationNames = ListFilterUtility::get_component_names_using_class($this->getListClassName(), 'TaxonomyTerm');
+		$componentRelationNames = ListFilterUtility::get_component_names_using_class($this->getListClass(), 'TaxonomyTerm');
 		if (count($componentRelationNames) > 1) {
 			// todo(Jake): maybe make dropdown to select a specific relation for these cases.
 			throw new Exception('Multiple many_many relationships with "TaxonomyTerm"');

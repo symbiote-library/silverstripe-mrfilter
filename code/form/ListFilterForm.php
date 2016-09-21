@@ -48,6 +48,7 @@ class ListFilterForm extends Form {
 		if (!$this->record) {
 			throw new Exception('Missing "ListFilterSet". Unable to determine from controller and it was not passed as 3rd parameter.');
 		}
+		$this->record->setForm($this);
 
 		$fieldNamespace = $this->class;
 

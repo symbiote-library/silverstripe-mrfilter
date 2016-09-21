@@ -185,11 +185,13 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function getConfigError() {
+	public function getConfigError($class) {
 		if (!$this->Parent()->exists()) {
 			return false;
 		}
-		$class = $this->getListClassName();
+		if (!$class) {
+			return false;
+		}
 		$searchableFields = singleton('SolrSearchService')->getSearchableFieldsFor($class);
 		if (!isset($searchableFields['LatLng'])) {
 			return $class.' must have "ListFilterSolrGeospatialExtension" applied or add a "LatLng_p" solr search field.';
