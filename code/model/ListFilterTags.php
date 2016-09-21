@@ -18,6 +18,17 @@ class ListFilterTags extends ListFilterBase {
 	}
 
 	/**
+	 * The tags available to the user on the frontend.
+	 *
+	 * @return SS_List
+	 */
+	final public function SelectableTagsAll() {
+		$list = $this->SelectableTags();
+		$this->extend('updateSelectableTags', $list);
+		return $list;
+	}
+
+	/**
 	 * {@inheritdoc}
 	 */
 	public function getComponentRelationName() {
@@ -29,7 +40,7 @@ class ListFilterTags extends ListFilterBase {
 	 */
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
-		$tags = $this->SelectableTags();
+		$tags = $this->SelectableTagsAll();
 		if ($tags instanceof SS_List) {
 			$tags = $tags->map('ID', 'Title');
 		}
@@ -73,7 +84,7 @@ class ListFilterTags extends ListFilterBase {
 	 */
 	public function getContext() {
 		if ($this->isInDB()) {
-			$list = $this->SelectableTags();
+			$list = $this->SelectableTagsAll();
 			if ($list instanceof SS_List) {
 				$list = $list->map('Title');
 			}
