@@ -5,6 +5,14 @@ if (!class_exists('SolrSearchService')) {
 }
 
 class ListFilterSharedSolr extends ListFilterShared {
+
+	/**
+	 * The limit of the number of items we'll care about with a solr based lookup
+	 *
+	 * @var int
+	 */
+	private static $max_solr_results = 10000;
+    
 	/**
 	 * @var SolrQueryBuilder
 	 */
@@ -52,7 +60,7 @@ class ListFilterSharedSolr extends ListFilterShared {
 		 * @var $solr SolrSearchService
 		 */
 		$solr = singleton('SolrSearchService');
-		$this->resultSet = $solr->query($builder);
+		$this->resultSet = $solr->query($builder, 0, $this->config()->max_solr_results);
 		$solrResults = $this->resultSet->getResult();
 		if (!isset($solrResults->response->docs)) {
 			$errorMessage = __CLASS__.': Missing "SolrResultSet::response->docs" from Solr. Has Solr been started?';
