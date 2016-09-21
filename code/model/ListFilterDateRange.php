@@ -24,19 +24,22 @@ class ListFilterDateRange extends ListFilterBase {
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
+		$self = &$this;
+		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+			$class = $self->getListClassName();
+			$dbFields = array();
+			if (class_exists($class)) {
+				$dbFields = array_keys($class::config()->db);
+				$dbFields = ArrayLib::valuekey($dbFields);
+				$dbFields[''] = '(Please select a field)';
+				$dbFields['ID'] = 'ID';
+				$dbFields['Created'] = 'Created';
+				$dbFields['LastEdited'] = 'LastEdited';
+			}
+			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('StartDateField', 'Start Date Field', $dbFields));
+			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('EndDateField', 'End Date Field', $dbFields));
+		});
 		$fields = parent::getCMSFields();
-		$class = $this->getListClassName();
-		$dbFields = array();
-		if (class_exists($class)) {
-			$dbFields = array_keys($class::config()->db);
-			$dbFields = ArrayLib::valuekey($dbFields);
-			$dbFields[''] = '(Please select a field)';
-			$dbFields['ID'] = 'ID';
-			$dbFields['Created'] = 'Created';
-			$dbFields['LastEdited'] = 'LastEdited';
-		}
-		$fields->addFieldToTab('Root.Main', $field = DropdownField::create('StartDateField', 'Start Date Field', $dbFields));
-		$fields->addFieldToTab('Root.Main', $field = DropdownField::create('EndDateField', 'End Date Field', $dbFields));
 		return $fields;
 	}
 
@@ -169,5 +172,14 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function getJavascriptCallback() {
 		return 'ListFilterDateRange';
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getContext() {
+		if ($this->isInDB()) {
+			return 'Start Date Field: '.$this->StartDateField.', End Date Field: '.$this->EndDateField;
+		}
 	}
 }

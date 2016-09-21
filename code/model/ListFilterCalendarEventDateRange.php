@@ -117,4 +117,11 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 			return 'Incorrectly configured. List Type must be "CalendarEvent" or subclass.';
 		}
 	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function getContext() {
+		return '';
+	}
 }

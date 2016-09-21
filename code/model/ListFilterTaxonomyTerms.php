@@ -8,13 +8,23 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 {
     private static $many_many = array(
 		'Terms' => 'TaxonomyTerm',
+		'TermParents' => 'TaxonomyTerm',
 	);
 
 	/**
 	 * {@inheritdoc}
 	 */
 	public function SelectableTags() {
-		return $this->Terms();
+		$result = array();
+		foreach ($this->TermParents() as $term) {
+			foreach ($term->Children() as $subterm) {
+				$result[$subterm->ID] = $subterm;
+			}
+		}
+		foreach ($this->Terms() as $term) {
+			$result[$term->ID] = $term;
+		}
+		return new ArrayList($result);
 	}
 
 	/**
@@ -22,9 +32,15 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 	 */
 	public function getCMSFields() {
 		$fields = parent::getCMSFields();
-		$fields->removeByName(array('Terms'));
-        $source = TreeMultiselectField::create('Terms', 'Terms to filter on', 'TaxonomyTerm', 'ID', 'Name');
-		$fields->addFieldToTab('Root.Main', $source);
+		$self = &$this;
+		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+			$fields->removeByName(array('Terms', 'TermParents'));
+			$fields->addFieldToTab('Root.Main', TreeMultiselectField::create('Terms', 'Terms', 'TaxonomyTerm', 'ID', 'Name')
+													->setRightTitle('List the selected terms out.'));
+			$fields->addFieldToTab('Root.Main', TreeMultiselectField::create('TermParents', 'Term Parents', 'TaxonomyTerm', 'ID', 'Name')
+													->setRightTitle('Automatically list all children Taxonomy Terms of the selected terms.'));
+		});
+		$fields = parent::getCMSFields();
 		return $fields;
 	}
 
