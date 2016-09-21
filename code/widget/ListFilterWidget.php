@@ -151,7 +151,7 @@ abstract class ListFilterWidget extends Controller {
 	 * @return string
 	 */
 	public function Link($action = null) {
-		return Controller::join_links($this->getForm()->Link('Widget'), $action);
+		return Controller::join_links($this->getForm()->Link('doWidget'), $action);
 	}
 
 	/**

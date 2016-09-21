@@ -7,7 +7,7 @@ class ListFilterFormValidator extends RequiredFields {
 
 class ListFilterForm extends Form {
 	private static $allowed_actions = array(
-		'Widget',
+		'doWidget',
 	);
 
 	private static $submit_use_button_tag = true;
@@ -283,12 +283,14 @@ class ListFilterForm extends Form {
 	 *
 	 * @return HTMLText
 	 */
-	public function Widget($request = null) {
+	public function doWidget($request = null) {
 		$widget = $this->getWidget();
 		if (!$widget) {
-			throw new Exception('Must configure a widget with "setWidget()"');
+			if ($request) {
+				throw new Exception('Must configure a widget with "'.__CLASS__.'::setWidget()" in your '.$this->getName().'() function on your '.$this->getController()->class.' class.');
+			}
+			return null;
 		}
-		$widget->setForm($this);
 		return $widget;
 	}
 
