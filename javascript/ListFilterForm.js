@@ -49,62 +49,57 @@
 			crossDomain: true,
 			headers: {
 				// Force sending of header for IE7/8
-			    'X-Requested-With': 'XMLHttpRequest'
+				'X-Requested-With': 'XMLHttpRequest'
 			},
 			data: $form.serialize()
-        }).done(function(data, textStatus, jqXHR) {
-        	$form.data('is-loading', false);
-        	var template, filterGroups, count, totalItems;
-        	if (typeof data === 'object') {
-        		filterGroups = data.FilterGroups;
-        		template = data.Template;
-        		count = data.Count;
-        		totalItems = data.TotalItems;
-        	} else {
-        		totalItems = null;
-        		count = null;
-        		filterGroups = null;
-        		template = data;
-        	}
-        	if (template.indexOf('<form') > -1) {
-        		$form.replaceWith(data);
-        		// todo(Jake): figure out how to get JS functionality (like jQuery UI datepicker, etc) to not break across elements.
-        		//			   maybe diff the HTML and insert $Message stuff where appropriate?
-        		formsInit();
-        	} else {
-        		// Update listing areas specifically using the same 'data-listfilter-id'
-	        	$relatedListing.html(template);
-	        	// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
-	        	$globalListing.html(template);
-	        	if ($relatedListing.length + $globalListing.length === 0) {
-	        		debugLog('Missing .js-listfilter-listing element. Unable to put form result anywhere.');
-	        	}
-	        	if (count !== null) {
-	        		// Update records returned count
-	        		var $relatedListingCount = $('.js-listfilter-listing-count[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
-	        		$relatedListingCount.html(count);
-	        		var $globalListingCount = $('.js-listfilter-listing-count:not([data-listfilter-id])');
-	        		$globalListingCount.html(count);
-	        	}
-	        	if (totalItems !== null) {
-	        		// Update records returned count
-	        		var $relatedListingTotal = $('.js-listfilter-listing-totalitems[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
-	        		$relatedListingTotal.html(totalItems);
-	        		var $globalListingTotal = $('.js-listfilter-listing-totalitems:not([data-listfilter-id])');
-	        		$globalListingTotal.html(totalItems);
-	        	}
-        	}
-        	if (filterGroups !== null) {
-        		$form.data('listfilter-backend', filterGroups);
-        		$form.trigger('ListFilterFormUpdate');
-        	}
-        	$form.trigger('ListFilterAJAXDone', [data, textStatus, jqXHR]);
-        }).fail(function(x, e, exception) {
-        	$form.data('is-loading', false);
-        	$form.trigger('ListFilterAJAXFail', [x, e, exception]);
-            if (debug) {
+		}).done(function(data, textStatus, jqXHR) {
+			$form.data('is-loading', false);
+			var template, filterGroups, fields;
+			if (typeof data === 'object') {
+				filterGroups = data.FilterGroups;
+				template = data.Template;
+			} else {
+				filterGroups = null;
+				template = data;
+			}
+			if (template.indexOf('<form') > -1) {
+				$form.replaceWith(data);
+				// todo(Jake): figure out how to get JS functionality (like jQuery UI datepicker, etc) to not break across elements.
+				//			   maybe diff the HTML and insert $Message stuff where appropriate?
+				formsInit();
+			} else {
+				// Update listing areas specifically using the same 'data-listfilter-id'
+				$relatedListing.html(template);
+				// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
+				$globalListing.html(template);
+				if ($relatedListing.length + $globalListing.length === 0) {
+					debugLog('Missing .js-listfilter-listing element. Unable to put form result anywhere.');
+				}
+				if (typeof data === 'object') {
+					for (var field in data) {
+						if (field === 'Template' || field === 'FilterGroups') {
+							continue;
+						}
+						var value = data[field];
+						var selector = '.js-listfilter-listing-' + field.toLowerCase();
+						var $relatedListingCount = $(selector+'[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+						$relatedListingCount.html(value);
+						var $globalListingCount = $(selector+':not([data-listfilter-id])');
+						$globalListingCount.html(value);
+					}
+				}
+			}
+			if (filterGroups !== null) {
+				$form.data('listfilter-backend', filterGroups);
+				$form.trigger('ListFilterFormUpdate');
+			}
+			$form.trigger('ListFilterAJAXDone', [data, textStatus, jqXHR]);
+		}).fail(function(x, e, exception) {
+			$form.data('is-loading', false);
+			$form.trigger('ListFilterAJAXFail', [x, e, exception]);
+			if (debug) {
 				if(x.status === 0){
-				    alert('You are offline!!\n Please Check Your Network.');
+					alert('You are offline!!\n Please Check Your Network.');
 				} else if(x.status == 404){
 					alert('Requested URL not found.');
 				} else if(x.status == 500){
@@ -118,14 +113,14 @@
 				} else {
 					alert('Unknown Error.\n'+x.responseText);
 				}
-         	}
-        }).complete(function(dataOrJqXHR, textStatus, jqXHROrErrorThrown) {
-        	$form.data('is-loading', false);
-        	for (var l = 0; l < loadingElements.length; ++l) {
+			}
+		}).complete(function(dataOrJqXHR, textStatus, jqXHROrErrorThrown) {
+			$form.data('is-loading', false);
+			for (var l = 0; l < loadingElements.length; ++l) {
 				$(loadingElements[l]).removeClass(loadingClass);
 			}
-        	$form.trigger('ListFilterAJAXComplete', [dataOrJqXHR, textStatus, jqXHROrErrorThrown]);
-        });
+			$form.trigger('ListFilterAJAXComplete', [dataOrJqXHR, textStatus, jqXHROrErrorThrown]);
+		});
 	}
 
 	function formFieldChange(e) {

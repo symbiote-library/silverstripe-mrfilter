@@ -251,10 +251,21 @@ class ListFilterForm extends Form {
 		$result = $this->customise(array(
 			'Results' => $list,
 		))->renderWith(array($list->dataClass().'_ListFilterListing', 'ListFilterListing'));
+		// todo(Jake): Make class called 'ListFilterListing' that'll store these properties
+		//				-and/or-
+		//			   Make a template for -just- rendering the 'Showing <span class="js-event-count">?</span> out of {$Count} results'
+		//			   text, that'll get returned in AJAX.
 		$result->Items = $list;
 		$result->Count = $list->getIterator()->count();
 		if ($list instanceof PaginatedList) {
 			$result->TotalItems = $list->count();
+			$result->CurrentPage = $list->CurrentPage();
+			$result->TotalPages = $list->TotalPages();
+			$result->OffsetStart = $list->getPageLength() * ($result->CurrentPage - 1);
+			$result->OffsetEnd = $list->getPageLength() * $result->CurrentPage;
+			if ($result->OffsetEnd > $result->TotalItems) {
+				$result->OffsetEnd = $result->TotalItems;
+			}
 		} else {
 			$result->TotalItems = $result->Count;
 		}
@@ -340,13 +351,12 @@ class ListFilterForm extends Form {
 		foreach ($list as $r) {
 			++$count;
 		}
-		// NOTE(Jake): getIterator() ensures PaginatedList only returns the ->limit() amount in pagination
-		$result['Count'] = $list->getIterator()->count();
-		if ($list instanceof PaginatedList) {
-			$result['TotalItems'] = $list->getTotalItems();
-		} else {
-			$result['TotalItems'] = $result['Count'];
-		}
+		$result['Count'] = $template->Count;
+		$result['TotalItems'] = $template->TotalItems;
+		$result['CurrentPage'] = $template->CurrentPage;
+		$result['TotalPages'] = $template->TotalPages;
+		$result['OffsetStart'] = $template->OffsetStart;
+		$result['OffsetEnd'] = $template->OffsetEnd;
 		$result['Template'] = $template;
 		if (count($result) === 1) {
 			// Return raw string/template if 
