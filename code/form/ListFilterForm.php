@@ -261,7 +261,7 @@ class ListFilterForm extends Form {
 			$result->TotalItems = $list->count();
 			$result->CurrentPage = $list->CurrentPage();
 			$result->TotalPages = $list->TotalPages();
-			$result->OffsetStart = $list->getPageLength() * ($result->CurrentPage - 1);
+			$result->OffsetStart = $list->getPageLength() * ($result->CurrentPage - 1) + 1;
 			$result->OffsetEnd = $list->getPageLength() * $result->CurrentPage;
 			if ($result->OffsetEnd > $result->TotalItems) {
 				$result->OffsetEnd = $result->TotalItems;
