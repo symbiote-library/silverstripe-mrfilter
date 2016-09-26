@@ -42,8 +42,8 @@ class ListFilterSolrFacet extends ListFilterBase {
 			$builder->addFacetFields(array($this->FacetOn));
 		}
 
-		if (isset($data['FilterGroup']) && is_array($data['FilterGroup'])) {
-			$selected = array_keys($data['FilterGroup']);
+		if (isset($data['FacetValues']) && is_array($data['FacetValues'])) {
+			$selected = array_keys($data['FacetValues']);
 			$filter = $this->FacetOn .':"' . implode('" ' . $this->FacetOn .':"', $selected) . '"';
 			
 			$builder->addFilter($filter);
