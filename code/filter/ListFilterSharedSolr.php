@@ -87,7 +87,9 @@ class ListFilterSharedSolr extends ListFilterShared {
 		$params = $builder->getParams();
 		if (isset($params['sort']) && $params['sort']) {
 			$table = ClassInfo::baseDataClass($list->dataClass());
-			$table .= (Versioned::get_reading_mode() == 'Stage.Live') ? '_Live' : '';
+            if (Object::has_extension($table, 'Versioned')) {
+                $table .= (Versioned::get_reading_mode() == 'Stage.Live') ? '_Live' : '';
+            }
 			$list = $list->sort(array("FIELD({$table}.ID,".implode(',', $ids).")" => 'ASC'));
 		}
 		return $list;
