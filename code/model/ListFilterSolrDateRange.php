@@ -29,21 +29,27 @@ class ListFilterSolrDateRange extends ListFilterDateRange {
         $sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
 		$builder = $sharedFilter->getQueryBuilder();
         
-        $startDateField = $this->StartDateField;
-        $startDateField = 'LastEdited' ? 'last_modified' : $startDateField . '_dt';
+        $startDateField = $this->StartDateField == 'LastEdited' ? 'last_modified' : $this->StartDateField . '_dt';
         
         $startDate = '1950-01-01T00:00:00Z';
         $endDate = '2050-01-01T00:00:00Z';
-            
-		if ($start) {
-            // $builder->addFilter();
-            $startDate = gmdate('Y-m-d\TH:i:s\Z', strtotime(date('Y-m-d 00:00:00', strtotime($start))));
-        }
-        if ($end) {
-            // $builder->addFilter();
-            $endDate = gmdate('Y-m-d\TH:i:s\Z', strtotime(date('Y-m-d 23:59:59', strtotime($end))));
+
+        $fmt = i18n::config()->date_format;
+        if (!$fmt) {
+            $fmt = 'yyyy-MM-d';
         }
         
+		if ($start) {
+            $dt = new Zend_Date($start, $fmt, i18n::get_locale());
+            $local = strtotime(date('Y-m-d 00:00:00', $dt->getTimestamp()));
+            $startDate = gmdate('Y-m-d\TH:i:s\Z', $local);
+        }
+        if ($end) {
+            $dt = new Zend_Date($end, $fmt, i18n::get_locale());
+            $local = strtotime(date('Y-m-d 23:59:59', $dt->getTimestamp()));
+            $endDate = gmdate('Y-m-d\TH:i:s\Z', $local);
+        }
+
         $builder->addFilter("$startDateField:[$startDate TO $endDate]");
 		return $sharedFilter;
 	}
