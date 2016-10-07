@@ -10,9 +10,9 @@ class ListFilterSolrFacet extends ListFilterBase {
 	);
 	
 	/**
-	 * @var array
+	 * @var CheckboxSetField
 	 */
-	protected $facetValuesField = array();
+	protected $facetValuesField = null;
 	
 	/**
 	 * {@inheritdoc}

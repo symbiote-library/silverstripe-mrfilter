@@ -12,7 +12,17 @@ class ListFilterForm extends Form {
 
 	private static $submit_use_button_tag = true;
 
+	/**
+	 * Default classes applied to the FormAction
+	 */
 	private static $submit_classes = 'button btn';
+
+	/**
+	 * Configure if the listing is loaded via AJAX or not.
+	 *
+	 * @var boolean
+	 */
+	private static $default_ajax_disabled = false;
 
 	/**
 	 * @var ListFilterSet
@@ -71,6 +81,7 @@ class ListFilterForm extends Form {
 			// Empty JS object/map
 			$this->setAttribute('data-listfilter-backend', '{}');
 		}
+		$this->setAttribute('data-ajax', (int)$this->getAJAXEnabled());
 
 		// Retain selections
 		$formData = $this->getVarData();
@@ -109,6 +120,26 @@ class ListFilterForm extends Form {
 	 */
 	public function TagEnd() {
 		return '</form>';
+	}
+
+	/**
+	 * @return ListFilterForm
+	 */
+	public function setAJAXEnabled($value) {
+		$this->ajax_enabled = $value;
+		$this->setAttribute('data-ajax', (int)$this->getAJAXEnabled());
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getAJAXEnabled() {
+		$result = $this->ajax_enabled;
+		if ($result === null) {
+			return ($this->config()->default_ajax_disabled == false);
+		}
+		return $result;
 	}
 
 	/**
@@ -318,6 +349,11 @@ class ListFilterForm extends Form {
 	 */
 	public function doGetListing($data) {
 		if (Director::is_ajax()) {
+			if (!$this->getAJAXEnabled()) {
+				$exception = new SS_HTTPResponse_Exception('Invalid operation.', 500);
+ 				$exception->getResponse()->addHeader('X-Status', $exception->getMessage());
+    			throw $exception;
+			}
 			$result = $this->doGetListing_Ajax($data);
 			if (is_array($result)) {
 				// Convert HTMLText/etc, into 'forTemplate'

@@ -79,8 +79,8 @@ class ListFilterSet extends DataObject {
 			if ($list) {
 				return $list->dataClass();
 			}
-		} catch (Exception $e) {
-
+		} catch (LogicException $e) {
+			// Ignore logic exceptions
 		}
 		return $this->ListClassName;
 	}
@@ -217,21 +217,32 @@ class ListFilterSet extends DataObject {
 				}
 				$dataRecord = $controller->data();
 				if (!$dataRecord || !$dataRecord->exists()) {
-					throw new Exception('No data record found on '.$controller->class.'. Unable to determine children for listing.');
+					throw new LogicException('No data record found on '.$controller->class.'. Unable to determine children for listing.');
 				}
-				if (!$dataRecord->hasExtension('Hierarchy')) {
-					throw new Exception('Cannot determine children of '.$dataRecord->ClassName.' as it does not use the "Hierarchy" extension.');
-				}
-				$list = $dataRecord->stageChildren(true);
+				if ($dataRecord->hasMethod('listFilterChildren')) {
+					throw new Exception('todo(Jake): add call listFilterChildren() and test');
+					//$list = $dataRecord->listFilterChildren($list);
+				} else {
+					if (!$dataRecord->hasExtension('Hierarchy')) {
+						throw new LogicException('Cannot determine children of '.$dataRecord->ClassName.' as it does not use the "Hierarchy" extension.');
+					}
 
-				// The children list uses 'SiteTree' as the 'dataClass', but we might want to access data that's specific
-				// to a BlogPost or CalendarEvent, so if the allowed_children only allow one specific type, switch the 
-				// dataClass() to that.
-				$allowedChildren = $dataRecord->stat('allowed_children');
-				if (count($allowedChildren) == 1) {
-					// NOTE(Jake): Able to manually set protected 'dataClass' property due to magic setter
-					//			   in ViewableData
-					$list->dataClass = reset($allowedChildren);
+					$baseClass = 'SiteTree';
+
+					// The children list (Hierarchy::stageChildren) uses 'SiteTree' as the 'dataClass', but we might want to access data that's specific
+					// to a BlogPost or CalendarEvent, so if the allowed_children only allow one specific type, switch the 
+					// $baseClass/dataClass() to that.
+					$allowedChildren = $dataRecord->stat('allowed_children');
+					if (count($allowedChildren) == 1) {
+						$baseClass = reset($allowedChildren);
+					}
+
+					// Manual recreation of: $dataRecord->stageChildren(true);
+					$list = $baseClass::get()
+								->filter('ParentID', (int)$dataRecord->ID)
+								->exclude('ID', (int)$dataRecord->ID);
+					$showAll = true;
+					$dataRecord->invokeWithExtensions('augmentStageChildren', $list, $showAll);
 				}
 			break;
 

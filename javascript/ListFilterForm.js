@@ -152,7 +152,9 @@
 				}
 				$(it).change(formFieldChange);
 			}
-			$form.submit(formSubmit);
+			if ($form.data('ajax')) {
+				$form.submit(formSubmit);
+			}
 			$form.data('listfilter-initiated', true);
 			$form.trigger('ListFilterFormInit');
 		});
