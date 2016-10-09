@@ -19,6 +19,8 @@ class ListFilterCacheFile extends ListFilterCache {
 		}
 		file_put_contents($file->getFullPath(), $data);
 		$file->write();
+		// Upload to S3/CDNContent for 'silverstripe-australia/cdncontent' module
+		$file->onAfterUpload();
 		return $file;
 	}
 
