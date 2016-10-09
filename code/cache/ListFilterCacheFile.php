@@ -5,18 +5,24 @@
  * external file locations (such as Amazon S3) when syncing on large projects.
  */
 class ListFilterCacheFile extends ListFilterCache {
+	private static $folder_name = 'Uploads';
+
 	public function save($data, $cacheKey) {
 		$name = $cacheKey;
 
-		$filename = ASSETS_DIR.'/'.$name;
+		$folderName = Config::inst()->get(__CLASS__, 'folder_name');
+		$folder = Folder::find_or_make($folderName); // relative to assets
+
+		$filename = $folder->Filename.$name;
 		$file = File::get()->filter(array(
 			'Name' => $name,
 		))->first();
 		if (!$file || !$file->exists()) {
 			$file = File::create();
-			$file->Name = $name;
-			$file->Filename = $filename;
 		}
+		$file->Name = $name;
+		$file->Filename = $filename;
+		$file->ParentID = ($folder && $folder->exists()) ? $folder->ID : null;
 		file_put_contents($file->getFullPath(), $data);
 		$file->write();
 		// Upload to S3/CDNContent for 'silverstripe-australia/cdncontent' module
