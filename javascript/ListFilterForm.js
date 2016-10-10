@@ -210,18 +210,22 @@
 		// Do 'AND' logic across filter groups. 
 		// ie. Ensure a record has tags AND fits into the date range.
 		var recordsThatMatchFilter = [];
+		var recordsMap = null;
 		for (var fieldGroupID in recordsInFilterGroups) {
 			if (!recordsInFilterGroups.hasOwnProperty(fieldGroupID)) {
 				continue;
 			}
-			var recordsMap = recordsInFilterGroups[fieldGroupID];
+			recordsMap = recordsInFilterGroups[fieldGroupID];
+			break;
+		}
+		if (recordsMap !== null) {
 			for (var recordID in recordsMap) {
 				if (!recordsMap.hasOwnProperty(recordID)) {
 					continue;
 				}
 				var isInAllFilters = true;
 				for (var otherFieldGroupID in recordsInFilterGroups) {
-					if (otherFieldGroupID === fieldGroupID || !recordsInFilterGroups.hasOwnProperty(otherFieldGroupID)) {
+					if (otherFieldGroupID == fieldGroupID || !recordsInFilterGroups.hasOwnProperty(otherFieldGroupID)) {
 						continue;
 					}
 					var otherFieldGroup = recordsInFilterGroups[otherFieldGroupID];
