@@ -9,6 +9,7 @@ class ListFilterSolrFacet extends ListFilterBase {
 		'FacetOn'	=> 'Varchar',
         'FilterMethod'  => 'Varchar',
         'ExcludeFilterCounts' => 'Boolean',
+        'DefaultValues'      => 'MultiValueField'
 	);
 	
 	/**
@@ -55,7 +56,9 @@ class ListFilterSolrFacet extends ListFilterBase {
         $facetField = $this->FacetOn;
         $fieldFilterPrefix = '';
         
-        // tag if we're excluding
+        // tag if we are going to always output total counts, regardless of whether the field is
+        // being filtered on - in other words, facet counts are taken excluding anything tagged
+        // https://wiki.apache.org/solr/SimpleFacetParameters
         if ($this->ExcludeFilterCounts && $facetField) {
             $facetField = "{!ex=listfilter$this->ID}$facetField";
             $fieldFilterPrefix = "{!tag=listfilter$this->ID}";
@@ -65,9 +68,18 @@ class ListFilterSolrFacet extends ListFilterBase {
 		if (strlen($facetField)) {
 			$builder->addFacetFields(array($this->Title => $facetField));
 		}
+        
+        // Use defaults if defined
+        $defaults = $this->DefaultValues->getValues();
+        if (is_array($defaults)) {
+            $defaults = array_combine($defaults, $defaults); 
+        }
+        
+        // or, if there's something in the request, use that. 
+        $filterOn = isset($data['FacetValues']) && is_array($data['FacetValues']) ? $data['FacetValues'] : $defaults;
 
-		if (isset($data['FacetValues']) && is_array($data['FacetValues'])) {
-			$selected = array_keys($data['FacetValues']);
+		if ($filterOn && count($filterOn)) {
+			$selected = array_keys($filterOn);
             
 			$filter = '(' . $this->FacetOn .':"' . implode('" '. $connector . ' ' . $this->FacetOn .':"', $selected) . '")';
 			
@@ -101,6 +113,13 @@ class ListFilterSolrFacet extends ListFilterBase {
 				// NOTE(Jake): Update facets field after the Solr query has been executed as the query results
 				// 			   contain the available facets.
 				$this->facetValuesField->setSource($source);
+                
+                // NOTE(Marcus): Now set defaults _if_ there's no current value assigned
+                $vals = $this->DefaultValues->getValues();
+                $currentVal = $this->facetValuesField->Value();
+                if (count($vals) && !$currentVal) {
+                    $this->facetValuesField->setValue($vals);
+                }
 			}
 		}
 	}
