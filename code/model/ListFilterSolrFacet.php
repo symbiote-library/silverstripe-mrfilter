@@ -7,6 +7,8 @@ if (!class_exists('SolrSearchService')) {
 class ListFilterSolrFacet extends ListFilterBase {
 	private static $db = array(
 		'FacetOn'	=> 'Varchar',
+        'FilterMethod'  => 'Varchar',
+        'ExcludeFilterCounts' => 'Boolean',
 	);
 	
 	/**
@@ -14,6 +16,17 @@ class ListFilterSolrFacet extends ListFilterBase {
 	 */
 	protected $facetValuesField = null;
 	
+    public function getCMSFields()
+    {
+        $fields = parent::getCMSFields();
+        $fields->removeByName('FilterMethod');
+        $fields->addFieldToTab('Root.Main', DropdownField::create('FilterMethod', 'Filter as', array('or' => 'OR', 'and' => 'AND')));
+        
+        $fields->dataFieldByName('ExcludeFilterCounts')->setTitle('Exclude this filter from counts of facet results');
+        
+        return $fields;
+    }
+    
 	/**
 	 * {@inheritdoc}
 	 */
@@ -37,16 +50,28 @@ class ListFilterSolrFacet extends ListFilterBase {
 	 */
 	public function applyFilter(SS_List $list, array $data) {
 		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
+        $connector = $this->FilterMethod == 'and' ? 'AND' : 'OR';
+        
+        $facetField = $this->FacetOn;
+        $fieldFilterPrefix = '';
+        
+        // tag if we're excluding
+        if ($this->ExcludeFilterCounts && $facetField) {
+            $facetField = "{!ex=listfilter$this->ID}$facetField";
+            $fieldFilterPrefix = "{!tag=listfilter$this->ID}";
+        }
+        
 		$builder = $sharedFilter->getQueryBuilder();
-		if (strlen($this->FacetOn)) {
-			$builder->addFacetFields(array($this->FacetOn));
+		if (strlen($facetField)) {
+			$builder->addFacetFields(array($this->Title => $facetField));
 		}
 
 		if (isset($data['FacetValues']) && is_array($data['FacetValues'])) {
 			$selected = array_keys($data['FacetValues']);
-			$filter = $this->FacetOn .':"' . implode('" ' . $this->FacetOn .':"', $selected) . '"';
+            
+			$filter = '(' . $this->FacetOn .':"' . implode('" '. $connector . ' ' . $this->FacetOn .':"', $selected) . '")';
 			
-			$builder->addFilter($filter);
+			$builder->addFilter($fieldFilterPrefix . $filter);
 		}
 		
 		return $sharedFilter;
