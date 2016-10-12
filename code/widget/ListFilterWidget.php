@@ -55,6 +55,35 @@ abstract class ListFilterWidget extends Controller {
 	}
 
 	/**
+	 * Get current page
+	 *
+	 * @return SiteTree
+	 */
+	public function getPage() {
+		$form = $this->getForm();
+		if (!$form) {
+			return null;
+		}
+		$page = $form->getController()->data();
+		return $page;
+	}
+
+	/**
+	 * @return DataObject
+	 */
+	public function setRecord(DataObjectInterface $record) {
+		$this->record = $record;
+		return $this;
+	}
+
+	/**
+	 * @return DataObject
+	 */
+	public function getRecord() {
+		return $this->record;
+	}
+
+	/**
 	 * @return SS_List
 	 */
 	public function BaseList() {
@@ -208,10 +237,7 @@ abstract class ListFilterWidget extends Controller {
 	public function forTemplate() {
 		$this->onBeforeRender();
 		$this->extend('onBeforeRender', $this);
-		// Failover to $form but only in template context.
-		$this->failover = $this->getForm();
 		$result = $this->renderWith(array($this->class, __CLASS__));
-		$this->failover = null;
 		return $result;
 	}
 }

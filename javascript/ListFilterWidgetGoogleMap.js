@@ -113,26 +113,28 @@
 				map.data.remove(e.feature);
 
 				if (popupEnabled) {
+					// todo: Don't hook if using non-AJAX popup info and its blank/not-set
 					marker.addListener('click', function() {
 						$mapElement.trigger('GoogleMapInfoWindowOpen', [marker.record, infoWindow]);
 					});
 				}
 
-				// Add record for filtering
+				// Add record
+				var recordProperties = {};
+				var record = {};
+				e.feature.forEachProperty(function(value, property) {
+					recordProperties[property] = value;
+				});
+				record.ID = recordProperties.ID;
+				record.Properties = recordProperties;
+				record.Marker = marker;
+				// Add info for live filtering
 				var filterGroups = e.feature.getProperty('FilterGroups');
 				if (filterGroups) {
-					var recordProperties = {};
-					var record = {};
-					e.feature.forEachProperty(function(value, property) {
-						recordProperties[property] = value;
-					});
-					record.ID = recordProperties.ID;
 					record.FilterGroups = recordProperties.FilterGroups;
-					record.Properties = recordProperties;
-					record.Marker = marker;
-					marker.record = record;
-					records.push(record);
 				}
+				marker.record = record;
+				records.push(record);
 	        }
 	    });
 	    $mapElement.data('listfilter-records', records);

@@ -138,12 +138,9 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				// Use "updateGeoJSONFeatureArray" from GeoJSON module
 				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
 			}
-			if (!isset($properties['FilterGroups'])) {
+			if ($filterSetRecord && !isset($properties['FilterGroups'])) {
 				// Add frontend widget filtering information
-				if ($filterSetRecord) {
-					$filterData = $filterSetRecord->FilterData($record);
-				}
-				$properties['FilterGroups'] = $filterData;
+				$properties['FilterGroups'] = $filterSetRecord->FilterData($record);
 			}
 			$features[] = $feature;
 		}
@@ -176,7 +173,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	/**
 	 * @return HTMLText
 	 */
-	public function getPopupTemplate(DataObjectInterface $record) {
+	public function getPopupTemplate(ViewableData $record) {
 		return $record->renderWith(array(__CLASS__.'InfoWindow'));
 	}
 
@@ -196,7 +193,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		// NOTE(Jake): 0,0 = the map will set the center based on all the markers.
 		$latitude = 0;
 		$longitude = 0;
-		$page = $this->getForm()->getController()->data();
+		$page = $this->getPage();
 		if ($page) {
 			$latitude = $page->Lat;
 			$longitude = $page->Lng;
@@ -218,12 +215,21 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		} else {
 			$attributes['features'] = $this->getFeatureCollection();
 			$popupTemplates = array();
-			foreach ($this->FilteredList() as $record) {
+			$list = $this->getList();
+			if (!$list) {
+				$list = $this->FilteredList();
+			}
+			foreach ($list as $record) {
 				$popupTemplate = $this->getPopupTemplate($record);
 				if ($popupTemplate && $popupTemplate instanceof HTMLText) {
 					$popupTemplate = $popupTemplate->RAW();
 				}
-				$popupTemplates[$record->ID] = $popupTemplate;
+				if (is_string($popupTemplate)) {
+					$popupTemplate = trim($popupTemplate);
+				}
+				if ($popupTemplate) {
+					$popupTemplates[$record->ID] = $popupTemplate;
+				}
 			}
 			if ($popupTemplates) {
 				$attributes['popup'] = $popupTemplates;
