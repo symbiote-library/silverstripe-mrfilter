@@ -22,6 +22,15 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	protected $ajax_enabled = null;
 
 	/**
+	 * Set if the widget loads a template when clicking a marker.
+	 *
+	 * Set to null to use 'default_popup_disabled' config.
+	 *
+	 * @var boolean
+	 */
+	protected $popup_enabled = null;
+
+	/**
 	 * The Google Maps API key
 	 *
 	 * @var string
@@ -35,6 +44,13 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @var boolean
 	 */
 	private static $default_ajax_disabled = false;
+
+	/**
+	 * Configure the widget to disable use of popup template.
+	 *
+	 * @var boolean
+	 */
+	private static $default_popup_disabled = false;
 
 	/**
 	 * Uses a basic 'LastEdited' check against the list for caching the 'getFeatureCollection'
@@ -171,6 +187,25 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	}
 
 	/**
+	 * @return $this
+	 */
+	public function setPopupEnabled($value) {
+		$this->popup_enabled = $value;
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getPopupEnabled() {
+		$result = $this->popup_enabled;
+		if ($result === null) {
+			return ($this->config()->default_popup_disabled == false);
+		}
+		return $result;
+	}
+
+	/**
 	 * @return HTMLText
 	 */
 	public function getPopupTemplate(ViewableData $record) {
@@ -209,9 +244,11 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		if ($this->getAJAXEnabled()) {
 			$attributes = array(
 				'features-url'	 => $this->Link('doGetFeatures'),
-				'popup-url'		 => $this->Link('doGetPopup'),
-				'popup-loading'  => $this->renderWith(array(__CLASS__.'InfoWindowLoading')),
 			);
+			if ($this->getPopupEnabled()) {
+				$attributes['popup-url'] = $this->Link('doGetPopup');
+				$attributes['popup-loading'] = $this->renderWith(array(__CLASS__.'InfoWindowLoading'));
+			}
 		} else {
 			$attributes['features'] = $this->getFeatureCollection();
 			$popupTemplates = array();
@@ -219,20 +256,24 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			if (!$list) {
 				$list = $this->FilteredList();
 			}
-			foreach ($list as $record) {
-				$popupTemplate = $this->getPopupTemplate($record);
-				if ($popupTemplate && $popupTemplate instanceof HTMLText) {
-					$popupTemplate = $popupTemplate->RAW();
+			if ($this->getPopupEnabled()) {
+				foreach ($list as $record) {
+					$popupTemplate = $this->getPopupTemplate($record);
+					if ($popupTemplate && $popupTemplate instanceof HTMLText) {
+						$popupTemplate = $popupTemplate->RAW();
+					}
+					// If the template outputs empty HTML, don't attach any popup
+					// template data, and implictly disable.
+					if (is_string($popupTemplate)) {
+						$popupTemplate = trim($popupTemplate);
+					}
+					if ($popupTemplate) {
+						$popupTemplates[$record->ID] = $popupTemplate;
+					}
 				}
-				if (is_string($popupTemplate)) {
-					$popupTemplate = trim($popupTemplate);
+				if ($popupTemplates) {
+					$attributes['popup'] = $popupTemplates;
 				}
-				if ($popupTemplate) {
-					$popupTemplates[$record->ID] = $popupTemplate;
-				}
-			}
-			if ($popupTemplates) {
-				$attributes['popup'] = $popupTemplates;
 			}
 		}
 
