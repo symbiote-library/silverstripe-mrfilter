@@ -260,7 +260,6 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			),
 			'init-parameters'	=> array(
 				'key' 	    => $this->getAPIKey(),
-				'signed_in' => true,
 				'libraries' => 'places',
 				'callback'  => 'initSSMapWidget',
 			),
