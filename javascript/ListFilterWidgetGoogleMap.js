@@ -6,22 +6,6 @@
 		return;
 	}
 
-	// Update visibility of markers based on filter criterion.
-	$mapWidgets.bind('ListFilterRecordsUpdate', function(e, records, setVisible) {
-		for (var i = 0; i < records.length; ++i) {
-			records[i].Marker.setVisible(setVisible);
-		}
-		var markerCluster = $(this).data('markerclusterer');
-		if (markerCluster) {
-			// Repaint the numbers on the clusters
-			// NOTE(Jake): Not calling markerCluster.redraw() as it looks bad
-			//			   when it refreshes.
-			for (var c = 0; c < markerCluster.clusters_.length; ++c) {
-				markerCluster.clusters_[c].updateIcon();
-			}
-		}
-	});
-
     // Get initialization parameters
     var parameters = $mapWidgets.first().data('init-parameters');
     var urlParameters = '?'+$.param(parameters);
@@ -74,6 +58,11 @@
     googleMapScript.setAttribute('src','https://maps.google.com/maps/api/js'+urlParameters);
     (document.getElementsByTagName('head')[0] || document.documentElement).appendChild(googleMapScript);
 
+    function clickMarker() {
+    	var $mapElement = $(this.getMap().getDiv());
+    	$mapElement.trigger('GoogleMapInfoWindowOpen', [this.record, $mapElement.data('infowindow')]);
+    }
+
     function loadFeaturesForMap(mapElement) {
     	var $mapElement = $(mapElement);
     	if (!$mapElement.data('map') || $mapElement.data('listfilter-records')) {
@@ -81,9 +70,9 @@
 			// and if no features exist yet.
 			return;
 		}
-		// Get feature data if its been loaded for that URL
 		var featureData = $mapElement.data('features');
 		if (!featureData) {
+			// Get feature data if its been loaded for that URL
 	    	var url = $mapElement.data('features-url');
 	    	featureData = cacheAjaxURL[url];
     	}
@@ -92,56 +81,53 @@
     	}
 		var map = $mapElement.data('map');
 		var dependencies = $mapElement.data('map-dependencies');
-		var popupEnabled = ($mapElement.data('popup-url') || $mapElement.data('popup'));
-
-		// todo(Jake): check if cluster is loaded
+		var popupEnabled = (false || $mapElement.data('popup-url') || $mapElement.data('popup'));
 		var markerDefaultParameters = $mapElement.data('marker-parameters');
 		if (!markerDefaultParameters || markerDefaultParameters.length === 0) {
 			markerDefaultParameters = {};
 		}
-		var clusterMarkers = [];
 		var records = [];
-		var infoWindow = $mapElement.data('infowindow');
-		google.maps.event.addListener(map.data, 'addfeature', function (e) {
-	        if (e.feature.getGeometry().getType() === 'Point') {
-	        	// Add marker
-	        	var markerParameters = markerDefaultParameters;
-	        	markerParameters.position = e.feature.getGeometry().get();
-	        	markerParameters.map = map;
-	            var marker = new google.maps.Marker(markerParameters);
-				clusterMarkers.push(marker);
-				map.data.remove(e.feature);
+
+	    $mapElement.data('listfilter-records', records);
+	    for (var i = 0; i < featureData.features.length; ++i) {
+	    	var feature = featureData.features[i];
+	    	if (feature.geometry.type === 'Point') {
+	    		// Add marker
+	            var marker = new google.maps.Marker(markerDefaultParameters);
+	            marker.setPosition({
+	        		lat: feature.geometry.coordinates[1],
+	        		lng: feature.geometry.coordinates[0]
+	        	});
+	            marker.setMap(map);
 
 				if (popupEnabled) {
 					// todo: Don't hook if using non-AJAX popup info and its blank/not-set
-					marker.addListener('click', function() {
-						$mapElement.trigger('GoogleMapInfoWindowOpen', [marker.record, infoWindow]);
-					});
+					marker.addListener('click', clickMarker);
 				}
 
 				// Add record
-				var recordProperties = {};
+				var recordProperties = feature.properties;
 				var record = {};
-				e.feature.forEachProperty(function(value, property) {
-					recordProperties[property] = value;
-				});
 				record.ID = recordProperties.ID;
 				record.Properties = recordProperties;
 				record.Marker = marker;
 				// Add info for live filtering
-				var filterGroups = e.feature.getProperty('FilterGroups');
-				if (filterGroups) {
+				if (typeof recordProperties.FilterGroups !== 'undefined') {
 					record.FilterGroups = recordProperties.FilterGroups;
 				}
 				marker.record = record;
 				records.push(record);
-	        }
-	    });
-	    $mapElement.data('listfilter-records', records);
-		map.data.addGeoJson(featureData);
+	    	} else {
+	    		console.log('Unsupported feature type ' + feature.geometry.type);
+	    	}
+		}
 
 		// Setup cluster
 		if (typeof dependencies.markerclusterer !== 'undefined') {
+			var clusterMarkers = [];
+			for (var cm = 0; cm < records.length; ++cm) {
+				clusterMarkers.push(records[cm].Marker);
+			}
 			var markerClustererOptions = dependencies.markerclusterer.options;
 			var markerCluster = new MarkerClusterer(map, clusterMarkers, markerClustererOptions);
 			markerCluster.calculatorDefault = markerClustererCalculator;
@@ -295,14 +281,38 @@
     	}
 	}
 
+	$(document).bind('ListFilterWidgetReinit', initMaps);
+
 	function initMaps() {
+		if (typeof google === 'undefined') {
+			// Ignore if not yet initialized
+			return;
+		}
+
 		// Load initialize maps
+		$mapWidgets = $('.js-listfilter-widget_googlemap');
 		$mapWidgets.each(function() {
 			var $mapElement = $(this);
 			if ($mapElement.data('map')) {
 				// Ignore if already initialized
 				return;
 			}
+
+			// Update visibility of markers based on filter criterion.
+			$(this).bind('ListFilterRecordsUpdate', function(e, records, setVisible) {
+				for (var i = 0; i < records.length; ++i) {
+					records[i].Marker.setVisible(setVisible);
+				}
+				var markerCluster = $(this).data('markerclusterer');
+				if (markerCluster) {
+					// Repaint the numbers on the clusters
+					// NOTE(Jake): Not calling markerCluster.redraw() as it looks bad
+					//			   when it refreshes.
+					for (var c = 0; c < markerCluster.clusters_.length; ++c) {
+						markerCluster.clusters_[c].updateIcon();
+					}
+				}
+			});
 
 			var mapParameters = $mapElement.data('map-parameters');
 			var map = new google.maps.Map($mapElement[0], mapParameters);
