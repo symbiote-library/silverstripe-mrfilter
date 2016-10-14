@@ -4,7 +4,6 @@ class ListFilterDateRange extends ListFilterBase {
 	private static $db = array(
 		'StartDateField' => 'Varchar(60)',
 		'EndDateField'   => 'Varchar(60)',
-		//'DateFormat'	 => 'Varchar',
 	);
 
 	private static $defaults = array(
@@ -14,19 +13,11 @@ class ListFilterDateRange extends ListFilterBase {
 	);
 
 	/**
-	 * The default date format to show.
-	 *
-	 * @return string
-	 */
-	private static $default_dateformat = '';
-
-	/**
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
 		$self = &$this;
 		$self->beforeUpdateCMSFields(function($fields) use ($self) {
-			// todo(Jake): Make this better when using special 'Children' list.
 			$class = $self->getListClass();
 			$dbFields = array(
 				'' => '(Please select a field)',
@@ -51,17 +42,8 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
-		$fields->push($field = DateField::create('StartDate', 'Start Date'));
-		if ($dateFormat = $this->getDateFormat()) {
-			$field->setConfig('dateformat', $dateFormat);
-			$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
-		}
-
-		$fields->push($field = DateField::create('EndDate', 'End Date'));
-		if ($dateFormat = $this->getDateFormat()) {
-			$field->setConfig('dateformat', $dateFormat);
-			$field->setAttribute('data-dateformat', $this->getDateFormatAsJQuery());
-		}
+		$fields->push(DateField::create('StartDate', 'Start Date'));
+		$fields->push(DateField::create('EndDate', 'End Date'));
 		return $fields;
 	}
 
@@ -106,14 +88,6 @@ class ListFilterDateRange extends ListFilterBase {
 	 * @return SS_List
 	 */
 	public function applyDateRange(SS_List $list, $start, $end) {
-		// Convert from alternate date format(s)
-		if ($start) {
-			$start = $this->convertDateFromDateFormat($start);
-		}
-		if ($end) {
-			$end = $this->convertDateFromDateFormat($end);
-		}
-
 		$startDateField = $this->StartDateField;
 		$endDateField = $this->EndDateField;
 
@@ -133,43 +107,6 @@ class ListFilterDateRange extends ListFilterBase {
 		return $list;
 	}
 
-	public function convertDateFromDateFormat($date) {
-		$format = $this->getDateFormat();
-		if ($format) {
-			$dateTime = DateTime::createFromFormat('!'.$this->getDateFormat(), $date);
-			if ($dateTime === FALSE) {
-				throw new Exception('Failed to create DateTime from "'.$date.'" formatted as "'.$this->getDateFormat().'"');
-			}
-			return date('Y-m-d', $dateTime->getTimestamp());
-		} else {
-			return $date;
-		}
-	}
-
-	/**
-	 * Get the date format to use on the fields and show on the frontend.
-	 *
-	 * @return string
-	 */
-	public function getDateFormat() {
-		$dateFormat = $this->getField('DateFormat');
-		if (!$dateFormat) {
-			$dateFormat = $this->config()->default_dateformat;
-		}
-		return $dateFormat;
-	}
-
-	/**
-	 * Get the date format to use on the fields and show on the frontend.
-	 *
-	 * @return string
-	 */
-	public function getDateFormatAsJQuery() {
-		$dateFormat = $this->getDateFormat();
-		$result = DateField_View_JQuery::convert_iso_to_jquery_format($dateFormat);
-		return $result;
-	}
-
 	/**
 	 * {@inheritdoc}
 	 */
@@ -182,7 +119,14 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function getContext() {
 		if ($this->isInDB()) {
-			return 'Start Date Field: '.$this->StartDateField.', End Date Field: '.$this->EndDateField;
+			$result = array();
+			if ($value = $this->StartDateField) {
+				$result[] = 'Start Date Field: '.$value;
+			}
+			if ($value = $this->EndDateField) {
+				$result[] = 'End Date Field: '.$value;
+			}
+			return implode(',', $result);
 		}
 	}
 }

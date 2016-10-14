@@ -88,6 +88,7 @@ class ListFilterForm extends Form {
 		$this->loadDataFrom($formData);
 
 		// Workaround issue where loadDataFrom() doesn't handle CheckboxSetField.
+		// (2016-10-14, Silverstripe 3.2)
 		$dataFields = $this->Fields()->dataFields();
 		if ($dataFields) {
 			foreach ($dataFields as $fieldName => $dataField) {

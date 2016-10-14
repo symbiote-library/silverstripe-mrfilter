@@ -31,7 +31,6 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 	 * {@inheritdoc}
 	 */
 	public function getCMSFields() {
-		$fields = parent::getCMSFields();
 		$self = &$this;
 		$self->beforeUpdateCMSFields(function($fields) use ($self) {
 			$fields->removeByName(array('Terms', 'TermParents'));

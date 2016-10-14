@@ -46,13 +46,11 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 		$fields = parent::getFilterFields();
 		$startDateField = $fields->dataFieldByName('StartDate');
 		if ($startDateField) {
-			// Set startDateField to default on the current date.
-			// todo(Jake): Move this to ListFilterDateRange if it makes sense to belong there.
-			$startDateField->setValue(date($this->getDateFormat()));
+			$startDateField->setValue(date('Y-m-d'));
 		}
 		return $fields;
 	}
-
+	
 	/**
 	 * {@inheritdoc}
 	 */
@@ -79,12 +77,7 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
 
 		$calendarDateTimeList = CalendarDateTime::get();
-		if (!$start && !$end) {
-			$startDateField = $this->getStartDateField();
-			$calendarDateTimeList = $calendarDateTimeList->where("{$startDateField} >= DATE(NOW())");
-		} else {
-			$calendarDateTimeList = $this->applyDateRange($calendarDateTimeList, $start, $end);
-		}
+		$calendarDateTimeList = $this->applyDateRange($calendarDateTimeList, $start, $end);
 		$calendarDateTimeList = $calendarDateTimeList->sort(array(
 			'StartDate' => 'ASC', 
 			'StartTime' => 'ASC',
