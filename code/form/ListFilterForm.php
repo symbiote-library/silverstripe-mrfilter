@@ -286,23 +286,13 @@ class ListFilterForm extends Form {
 	/**
 	 * @return array
 	 */
-	public function getTemplates($templateName, $recordOrClasses) {
-		$result = array();
-		if (is_object($recordOrClasses)) {
-			foreach (array_reverse(ClassInfo::ancestry($recordOrClasses)) as $class) {
-				if ($class === 'DataObject') {
-					break;
-				}
-				$result[] = $class.'_'.$templateName;
-			}
-		} else if (is_array($recordOrClasses)) {
-			$result[] = array_merge($result, $recordOrClasses);
-		} else if (is_string($recordOrClasses)) {
-			// ie. 'Calendar_ListFilterListing'
-			$result[] = $recordOrClasses.'_'.$templateName;
+	public function getTemplates($templateName, $recordOrClasses = null) {
+		if ($recordOrClasses === null) {
+			$recordOrClasses = $this->getPage();
 		}
-		// ie. 'ListFilterListing'
-		$result[] = $templateName;
+		$result = ListFilterUtility::get_templates($templateName, $recordOrClasses);
+		// todo(Jake): Add and test
+		// $this->extend('updateTemplates', $result, $templateName, $recordOrClasses);
 		return $result;
 	}
 

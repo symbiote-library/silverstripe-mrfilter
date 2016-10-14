@@ -4,6 +4,36 @@ class ListFilterUtility {
 	const MODULE_DIR = 'mrfilter';
 
 	/**
+	 * @return array
+	 */
+	public static function get_templates($templateName, $recordOrClasses) {
+		// Determine class post-fixes
+		$classes = array();
+		if (is_object($recordOrClasses)) {
+			foreach (array_reverse(ClassInfo::ancestry($recordOrClasses)) as $class) {
+				if ($class === 'DataObject') {
+					break;
+				}
+				$classes[] = $class;
+			}
+		} else if (is_array($recordOrClasses)) {
+			$classes[] = $recordOrClasses;
+		} else if (is_string($recordOrClasses)) {
+			$classes[] = $recordOrClasses;
+		}
+
+		// Setup templates
+		$result = array();
+		foreach ($classes as $class) {
+			// ie. 'ListFilterListing_Calendar'
+			$result[] = $templateName.'_'.$class;
+		}
+		// ie. 'ListFilterListing'
+		$result[] = $templateName;
+		return $result;
+	}
+
+	/**
 	 * @return string
 	 */
 	public static function get_component_names_using_class($class, $relationClass) {

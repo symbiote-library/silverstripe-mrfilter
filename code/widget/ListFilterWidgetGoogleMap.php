@@ -209,7 +209,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return HTMLText
 	 */
 	public function getPopupTemplate(ViewableData $record) {
-		return $record->renderWith(array(__CLASS__.'InfoWindow'));
+		return $record->renderWith($this->getTemplates(__CLASS__.'InfoWindow'));
 	}
 
 	/**
@@ -247,7 +247,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			);
 			if ($this->getPopupEnabled()) {
 				$attributes['popup-url'] = $this->Link('doGetPopup');
-				$attributes['popup-loading'] = $this->renderWith(array(__CLASS__.'InfoWindowLoading'));
+				$attributes['popup-loading'] = $this->renderWith($this->getTemplates(__CLASS__.'InfoWindowLoading'));
 			}
 		} else {
 			$attributes['features'] = $this->getFeatureCollection();

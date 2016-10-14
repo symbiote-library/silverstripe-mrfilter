@@ -230,6 +230,22 @@ abstract class ListFilterWidget extends Controller {
 		return $this;
 	}
 
+	/**
+	 * @return array
+	 */
+	public function getTemplates($templateName, $recordOrClasses = null) {
+		if ($recordOrClasses === null) {
+			$recordOrClasses = $this->getRecord();
+			if (!$recordOrClasses) {
+				$recordOrClasses = $this->getPage();
+			}
+		}
+		$result = ListFilterUtility::get_templates($templateName, $recordOrClasses);
+		// todo(Jake): Add and test
+		// $this->extend('updateTemplates', $result, $templateName, $recordOrClasses);
+		return $result;
+	}
+
 	/** 
 	 * @return HTMLText
 	 */
