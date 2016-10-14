@@ -22,10 +22,14 @@ class ListFilterTags extends ListFilterBase {
 	 *
 	 * @return SS_List
 	 */
+	protected $cache_selected_tags = null;
 	final public function SelectableTagsAll() {
+		if ($this->cache_selected_tags !== null) {
+			return $this->cache_selected_tags;
+		}
 		$list = $this->SelectableTags();
 		$this->extend('updateSelectableTags', $list);
-		return $list;
+		return $this->cache_selected_tags = $list;
 	}
 
 	/**

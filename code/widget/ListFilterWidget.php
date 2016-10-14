@@ -64,8 +64,7 @@ abstract class ListFilterWidget extends Controller {
 		if (!$form) {
 			return null;
 		}
-		$page = $form->getController()->data();
-		return $page;
+		return $form->getPage();
 	}
 
 	/**

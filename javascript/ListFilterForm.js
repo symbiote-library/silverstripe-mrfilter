@@ -57,7 +57,7 @@
 			var template, filterGroups, fields;
 			if (typeof data === 'object') {
 				filterGroups = data.FilterGroups;
-				template = data.Template;
+				template = data.Listing;
 			} else {
 				filterGroups = null;
 				template = data;
@@ -77,7 +77,7 @@
 				}
 				if (typeof data === 'object') {
 					for (var field in data) {
-						if (field === 'Template' || field === 'FilterGroups') {
+						if (field === 'Listing' || field === 'FilterGroups') {
 							continue;
 						}
 						var value = data[field];

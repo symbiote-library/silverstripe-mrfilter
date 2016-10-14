@@ -271,6 +271,91 @@ class ListFilterForm extends Form {
 	}
 
 	/**
+	 * Get current page.
+	 *
+	 * @return SiteTree
+	 */
+	public function getPage() {
+		$controller = $this->getController();
+		if (!$controller->hasMethod('data')) {
+			return null;
+		}
+		return $controller->data();
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getTemplates($templateName, $recordOrClasses) {
+		$result = array();
+		if (is_object($recordOrClasses)) {
+			foreach (array_reverse(ClassInfo::ancestry($recordOrClasses)) as $class) {
+				if ($class === 'DataObject') {
+					break;
+				}
+				$result[] = $class.'_'.$templateName;
+			}
+		} else if (is_array($recordOrClasses)) {
+			$result[] = array_merge($result, $recordOrClasses);
+		} else if (is_string($recordOrClasses)) {
+			// ie. 'Calendar_ListFilterListing'
+			$result[] = $recordOrClasses.'_'.$templateName;
+		}
+		// ie. 'ListFilterListing'
+		$result[] = $templateName;
+		return $result;
+	}
+
+	/**
+	 * For calling $ListFilterForm.ShowingMessage in a template.
+	 *
+	 * @return HTMLText
+	 */
+	public function ShowingMessage(SS_List $list = null) {
+		if ($list === null) {
+			$list = $this->resultList;
+		}
+
+		$data = array(
+			'List' => $list,
+			'IsPaginated' => ($list instanceof PaginatedList),
+		);
+
+		if ($list instanceof PaginatedList) {
+			$start = 0;
+			$request = $list->getRequest();
+			if ($request) {
+				$getVarName = $list->getPaginationGetVar();
+				if($request && isset($request[$getVarName]) && $request[$getVarName] > 0) {
+					$start = (int)$request[$getVarName];
+				}
+			}
+
+			$data['TotalCount'] = $list->TotalItems();
+			if ($start < $data['TotalCount']) {
+				$data['OffsetStart'] = $start;
+
+				$data['CurrentPage'] = $list->CurrentPage();
+				$data['TotalPages'] = $list->TotalPages();
+				$data['OffsetEnd'] = $start + $list->getPageLength();
+
+				$pageLength = $list->getPageLength();
+				if ($data['OffsetEnd'] > $data['TotalCount']) {
+					$data['OffsetEnd'] = $data['TotalCount'];
+				}
+			} else {
+				$data['TotalCount'] = 0;
+			}
+		} else {
+			$data['TotalCount'] = $list->count();
+		}
+
+		$result = $this->getController()->customise($data);
+		$result = $result->renderWith($this->getTemplates('ListFilterShowingMessage', $this->getPage()));
+		return $result;
+	}
+
+	/**
 	 * For calling $ListFilterForm.Listing in a template.
 	 *
 	 * @return HTMLText
@@ -279,28 +364,10 @@ class ListFilterForm extends Form {
 		if ($list === null) {
 			$list = $this->resultList;
 		}
-		// todo(Jake): get class ancestry for rendering *_ListFilterListing
-		$result = $this->customise(array(
+		$result = $this->getController()->customise(array(
 			'Results' => $list,
-		))->renderWith(array($list->dataClass().'_ListFilterListing', 'ListFilterListing'));
-		// todo(Jake): Make class called 'ListFilterListing' that'll store these properties
-		//				-and/or-
-		//			   Make a template for -just- rendering the 'Showing <span class="js-event-count">?</span> out of {$Count} results'
-		//			   text, that'll get returned in AJAX.
-		$result->Items = $list;
-		$result->Count = $list->getIterator()->count();
-		if ($list instanceof PaginatedList) {
-			$result->TotalItems = $list->count();
-			$result->CurrentPage = $list->CurrentPage();
-			$result->TotalPages = $list->TotalPages();
-			$result->OffsetStart = $list->getPageLength() * ($result->CurrentPage - 1) + 1;
-			$result->OffsetEnd = $list->getPageLength() * $result->CurrentPage;
-			if ($result->OffsetEnd > $result->TotalItems) {
-				$result->OffsetEnd = $result->TotalItems;
-			}
-		} else {
-			$result->TotalItems = $result->Count;
-		}
+		));
+		$result = $result->renderWith($this->getTemplates('ListFilterListing', $this->getPage()));
 		return $result;
 	}
 
@@ -330,10 +397,7 @@ class ListFilterForm extends Form {
 	public function doWidget($request = null) {
 		$widget = $this->getWidget();
 		if (!$widget) {
-			if ($request) {
-				throw new Exception('Must configure a widget with "'.__CLASS__.'::setWidget()" in your '.$this->getName().'() function on your '.$this->getController()->class.' class.');
-			}
-			return null;
+			throw new Exception('Must configure a widget with "'.__CLASS__.'::setWidget()" in your '.$this->getName().'() function on your '.$this->getController()->class.' class.');
 		}
 		return $widget;
 	}
@@ -377,30 +441,20 @@ class ListFilterForm extends Form {
 	 * @return array
 	 */
 	public function doGetListing_Ajax($data) {
-		$list = $this->resultList;
-		$template = $this->Listing($list);
-		$result = array();
+		$result = array(
+			'Listing' => $this->Listing(),
+			'ShowingMessage' => $this->ShowingMessage(),
+		);
+		// Get filtering information if $Widget is set.
 		$filterGroupData = $this->FilterBackendData($data);
 		if ($filterGroupData !== null) {
 			$result['FilterGroups'] = $filterGroupData;
 		}
-		$count = 0;
-		foreach ($list as $r) {
-			++$count;
-		}
-		$result['Count'] = $template->Count;
-		$result['TotalItems'] = $template->TotalItems;
-		$result['CurrentPage'] = $template->CurrentPage;
-		$result['TotalPages'] = $template->TotalPages;
-		$result['OffsetStart'] = $template->OffsetStart;
-		$result['OffsetEnd'] = $template->OffsetEnd;
-		$result['Template'] = $template;
 		if (count($result) === 1) {
-			// Return raw string/template if 
+			// Return raw string/template 
 			return reset($result);
-		} else {
-			return $result;
 		}
+		return $result;
 	}
 
 	/**
