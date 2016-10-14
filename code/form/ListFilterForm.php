@@ -308,9 +308,7 @@ class ListFilterForm extends Form {
 
 		$data = array(
 			'List' => $list,
-			'IsPaginated' => ($list instanceof PaginatedList),
 		);
-
 		if ($list instanceof PaginatedList) {
 			$start = 0;
 			$request = $list->getRequest();
@@ -324,8 +322,7 @@ class ListFilterForm extends Form {
 			$data['TotalCount'] = $list->TotalItems();
 			if ($start < $data['TotalCount']) {
 				$data['OffsetStart'] = $start;
-
-				$data['CurrentPage'] = $list->CurrentPage();
+				$data['ThisPage'] = $list->CurrentPage();
 				$data['TotalPages'] = $list->TotalPages();
 				$data['OffsetEnd'] = $start + $list->getPageLength();
 
@@ -333,14 +330,21 @@ class ListFilterForm extends Form {
 				if ($data['OffsetEnd'] > $data['TotalCount']) {
 					$data['OffsetEnd'] = $data['TotalCount'];
 				}
+				$data['Count'] = $data['OffsetEnd'] - $data['OffsetStart'];
 			} else {
 				$data['TotalCount'] = 0;
 			}
 		} else {
 			$data['TotalCount'] = $list->count();
+			$data['Count'] = $data['TotalCount'];
+			$data['ThisPage'] = 1;
+			$data['TotalPages'] = 1;
+			$data['OffsetStart'] = 0;
+			$data['OffsetEnd'] = $data['TotalCount'];
 		}
 
-		$result = $this->getController()->customise($data);
+		$controller = $this->getController();
+		$result = $controller->customise($data);
 		$result = $result->renderWith($this->getTemplates('ListFilterShowingMessage', $this->getPage()));
 		return $result;
 	}

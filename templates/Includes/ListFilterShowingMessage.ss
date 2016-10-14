@@ -1,7 +1,10 @@
 <%-- 
+For AJAX functionality, must be directly underneath an element with the class: "js-listfilter-listing-showingmessage"
+
 Available:
+	- $Count
 	- $TotalCount
-	- $CurrentPage
+	- $ThisPage
 	- $TotalPages
 	- $Class
 	- $OffsetStart
