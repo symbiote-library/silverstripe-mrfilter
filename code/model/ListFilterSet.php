@@ -72,6 +72,75 @@ class ListFilterSet extends DataObject {
 		} else {
 			$fields->addFieldToTab('Root.Main', LiteralField::create('ListFilters_Help', 'You must save the filter set first to add filter groups.'));
 		}
+
+		// Show every page that is using this list filter set
+		// (must use 'ListFilterSetExtension')
+		if ($this->isInDB()) {
+			$pagesAttachedToList = $this->PagesAttachedTo();
+			$fields->addFieldToTab('Root.LinkedTo', $gridField = GridField::create('LinkedTo', 'Linked To', $pagesAttachedToList));
+			$gridField->setDescription('The pages that are currently using this List Filter Set.');
+			$gridField->setModelClass('SiteTree');
+			if ($pagesAttachedToList->count() > 0) {
+				$fields = array(
+					'getTreeTitle' => _t('SiteTree.PAGETITLE', 'Page Title'),
+					'singular_name' => _t('SiteTree.PAGETYPE'),
+					'LastEdited' => _t('SiteTree.LASTUPDATED', 'Last Updated'),
+				);
+				$config = $gridField->getConfig();
+				$columns = $config ->getComponentByType('GridFieldDataColumns');
+				$gridField->getConfig()->getComponentByType('GridFieldSortableHeader')->setFieldSorting(array('getTreeTitle' => 'Title'));
+				$columns->setDisplayFields($fields);
+				$columns->setFieldCasting(array(
+					'Created' => 'Datetime->Ago',
+					'LastEdited' => 'Datetime->FormatFromSettings',
+					'getTreeTitle' => 'HTMLText'
+				));
+				$columns->setFieldFormatting(array(
+					'getTreeTitle' => function($value, &$item) {
+						return sprintf(
+							'<a class="action-detail" href="%s">%s</a>',
+							Controller::join_links(
+								singleton('CMSPageEditController')->Link('show'),
+								(int)$item->ID
+							),
+							$item->TreeTitle // returns HTML, does its own escaping
+						);
+					}
+				));
+			}
+		}
+	}
+
+	/**
+	 * Return a list of the pages this list filter is used on.
+	 *
+	 * @return ArrayList
+	 */
+	public function PagesAttachedTo() {
+		$pagesList = array();
+		$originalMode = Versioned::current_stage();
+        Versioned::reading_stage('Stage');
+
+        foreach (get_declared_classes() as $class) {
+            if (is_subclass_of($class, 'SiteTree')) {
+                $object = singleton($class);
+                $classes = ClassInfo::subclassesFor('ListFilterSetExtension');
+                $hasListFilterSet = false;
+
+                foreach ($classes as $extension) {
+                    $hasListFilterSet = ($hasListFilterSet || $object->hasExtension($extension));
+                }
+
+                if ($hasListFilterSet) {
+                    foreach ($class::get()->filter('ListFilterSetID', $this->ID) as $page) {
+                    	$pagesList[] = $page;
+                	}
+                }
+            }
+        }
+
+        Versioned::reading_stage($originalMode);
+        return ArrayList::create($pagesList);
 	}
 
 	/**
