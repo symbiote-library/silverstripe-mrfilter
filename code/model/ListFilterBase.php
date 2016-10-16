@@ -16,6 +16,9 @@ class ListFilterBase extends DataObject {
 		'ContextSummaryField' => 'Context',
 	);
 
+	/**
+	 * @var string
+	 */
 	private static $default_sort = 'Sort';
 
 	/**

@@ -2,7 +2,7 @@
 
 // Requires: https://github.com/nyeholt/silverstripe-solr
 
-if (!class_exists('SolrSearchService')) {
+if (class_exists('SolrSearchService')) {
 
 class ListFilterSolrKeyword extends ListFilterBase {
 	/**

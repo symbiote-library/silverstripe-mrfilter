@@ -478,7 +478,8 @@ class ListFilterForm extends Form {
 	public function forTemplate() {
 		$this->onBeforeRender();
 		$this->extend('onBeforeRender', $this);
-		// Failover to $record but only in template context.
+		// Failover to current page
+		// todo(Jake): Perhaps change this to $this->getPage()
 		$this->failover = $this->getRecord();
 		$result = parent::forTemplate();
 		$this->failover = null;

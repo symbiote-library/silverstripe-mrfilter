@@ -10,9 +10,12 @@ class ListFilterSetExtension extends Extension {
 
 	public function updateCMSFields(FieldList $fields) {
 		$fields->removeByName('ListFilterSetID');
-		$filterSetField = DropdownField::create('ListFilterSetID', 'List Filter Set');
+		$filterSetField = DropdownField::create('ListFilterSetID', 'List Filter Set', ListFilterSet::get()->map()->toArray());
 		$filterSetField->setEmptyString('(Select a filter set)');
-		$filterSetField->setSource(ListFilterSet::get()->map()->toArray());
+		$modelAdmin = singleton('ListFilterAdmin');
+		if ($modelAdmin->canView()) {
+			$filterSetField->setRightTitle('Click <a href="'.singleton('ListFilterAdmin')->Link().'">here</a> to add or edit List Filter Sets.');
+		}
 		if ($fields->dataFieldByName('MenuTitle')) {
 			$fields->insertAfter($filterSetField, 'MenuTitle');
 		} else {

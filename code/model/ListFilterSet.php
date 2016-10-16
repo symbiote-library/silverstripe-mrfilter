@@ -59,14 +59,18 @@ class ListFilterSet extends DataObject {
 		$fields->addFieldToTab('Root.Main', TextField::create('ListCMSTitle', 'Title')->setRightTitle('A title to identify the filter set across the CMS.'));
 		$fields->addFieldToTab('Root.Main', DropdownField::create('ListClassName', 'List Type')->setSource($listTypes));
 		$fields->addFieldToTab('Root.Main', TextField::create('ListLimitPerPage', 'List Per Page')->setRightTitle('0 = Show all, no pagination.'));
-		if ($this->owner->isInDB()) {
+		if ($this->isInDB()) {
 			$config = new GridFieldConfig_RecordEditor();
+			$fields->addFieldToTab('Root.Main', $gridField = GridField::create('ListFilters', 'Filter Groups', $this->getComponents('ListFilters'), $config));
+			$config->removeComponentsByType('GridFieldAddNewButton');
 			if (class_exists('GridFieldAddNewMultiCLass')) {
-				$config->removeComponentsByType('GridFieldAddNewButton');
 				$config->addComponent(new GridFieldAddNewMultiCLass());
 				$config->addComponent(new GridFieldOrderableRows());
+			} else {
+				$gridField->setDescription('You must install the <a href="https://github.com/silverstripe-australia/silverstripe-gridfieldextensions" target="_blank">Grid Field Extensions</a> module to use this.');
 			}
-			$fields->addFieldToTab('Root.Main', GridField::create('ListFilters', 'Filter Groups', $this->owner->getComponents('ListFilters'), $config));
+		} else {
+			$fields->addFieldToTab('Root.Main', LiteralField::create('ListFilters_Help', 'You must save the filter set first to add filter groups.'));
 		}
 	}
 
@@ -259,7 +263,7 @@ class ListFilterSet extends DataObject {
 	 * @return SS_List
 	 */
 	public function FilteredList(array $data, $caller) {
-		$list = $this->owner->BaseList();
+		$list = $this->BaseList();
 		$list = $this->applyFilterToList($list, $data, $caller);
 		return $list;
 	}
@@ -308,8 +312,8 @@ class ListFilterSet extends DataObject {
 		$allFilterGroupData = $this->unNamespaceFilterFields($data);
 
 		$result = array();
-		$baseList = $this->owner->BaseList();
-		foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
+		$baseList = $this->BaseList();
+		foreach ($this->ListFiltersPersist() as $filterGroup) {
 			$id = (int)$filterGroup->ID;
 			$filterGroupData = isset($allFilterGroupData[$id]) ? $allFilterGroupData[$id] : array();
 			$filterResultData = $filterGroup->getFilterBackendData($baseList, $filterGroupData);
@@ -332,7 +336,7 @@ class ListFilterSet extends DataObject {
 		$sharedFilters = array();
 
 		// Apply filter based on data sent through
-		foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
+		foreach ($this->ListFiltersPersist() as $filterGroup) {
 			$filterConfigError = $filterGroup->getConfigError($list->dataClass());
 			if ($filterConfigError) {
 				throw new LogicException($filterConfigError);
@@ -365,7 +369,7 @@ class ListFilterSet extends DataObject {
 		}
         
         // Allow the filters to analyse the final list and update itself accordingly
-        foreach ($this->owner->ListFiltersPersist() as $filterGroup) {
+        foreach ($this->ListFiltersPersist() as $filterGroup) {
             $filterGroup->finaliseFilter($list);
         }
 
