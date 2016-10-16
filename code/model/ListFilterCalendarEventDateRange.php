@@ -1,8 +1,8 @@
 <?php
 
-if (!class_exists('CalendarDateTime')) {
-	return;
-}
+// Requires: https://github.com/unclecheese/silverstripe-event-calendar
+
+if (class_exists('CalendarDateTime')) {
 
 class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	/**
@@ -116,4 +116,6 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	public function getContext() {
 		return '';
 	}
+}
+
 }

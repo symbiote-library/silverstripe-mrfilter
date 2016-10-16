@@ -1,8 +1,9 @@
 <?php
 
-if (!class_exists('SolrSearchService')) {
-	return;
-}
+// Requires: https://github.com/nyeholt/silverstripe-solr
+//           https://github.com/silverstripe-australia/silverstripe-multivaluefield
+
+if (class_exists('SolrSearchService') && class_exists('MultiValueField')) {
 
 /**
  * A set of fields / values to filter the current request by
@@ -50,4 +51,6 @@ class ListFilterSolrFields extends ListFilterBase
 		
 		return $sharedFilter;
 	}
+} 
+
 }

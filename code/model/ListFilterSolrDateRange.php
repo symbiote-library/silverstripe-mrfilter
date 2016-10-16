@@ -1,5 +1,9 @@
 <?php
 
+// Requires: https://github.com/nyeholt/silverstripe-solr
+
+if (class_exists('SolrSearchService')) {
+
 class ListFilterSolrDateRange extends ListFilterDateRange {
     public function getCMSFields()
     {
@@ -47,4 +51,6 @@ class ListFilterSolrDateRange extends ListFilterDateRange {
         $builder->addFilter("$startDateField:[$startDate TO $endDate]");
 		return $sharedFilter;
 	}
+}
+
 }

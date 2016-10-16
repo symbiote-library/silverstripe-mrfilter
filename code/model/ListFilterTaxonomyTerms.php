@@ -1,8 +1,6 @@
 <?php
 
-if (!class_exists('TaxonomyTerm')) {
-	return;
-}
+if (class_exists('TaxonomyTerm')) {
 
 class ListFilterTaxonomyTerms extends ListFilterTags 
 {
@@ -55,4 +53,6 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 		$componentRelationName = reset($componentRelationNames);
 		return $componentRelationName;
 	}
+}
+
 }

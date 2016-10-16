@@ -1,8 +1,9 @@
 <?php
 
-if (!class_exists('SolrSearchService')) {
-	return;
-}
+// Requires: https://github.com/nyeholt/silverstripe-solr
+//			 https://github.com/silverstripe-australia/silverstripe-multivaluefield
+
+if (class_exists('SolrSearchService') && class_exists('MultiValueField')) {
 
 class ListFilterSolrFacet extends ListFilterBase {
 	private static $db = array(
@@ -138,4 +139,6 @@ class ListFilterSolrFacet extends ListFilterBase {
 	/*public function getJavascriptCallback() {
 		return 'ListFilterGroupIDs';
 	}*/
+}
+
 }

@@ -1,8 +1,8 @@
 <?php
 
-if (!class_exists('SolrSearchService')) {
-	return;
-}
+// Requires: https://github.com/nyeholt/silverstripe-solr
+
+if (class_exists('SolrSearchService')) {
 
 class ListFilterSolrGeospatial extends ListFilterBase {
 	private static $db = array(
@@ -211,4 +211,6 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 			return 'Radius: '.$this->Radius().'km';
 		}
 	}
+}
+
 }

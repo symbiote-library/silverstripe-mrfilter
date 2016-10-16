@@ -1,8 +1,8 @@
 <?php
 
+// Requires: https://github.com/nyeholt/silverstripe-solr
+
 if (!class_exists('SolrSearchService')) {
-	return;
-}
 
 class ListFilterSolrKeyword extends ListFilterBase {
 	/**
@@ -58,4 +58,6 @@ class ListFilterSolrKeyword extends ListFilterBase {
 	public function getJavascriptCallback() {
 		return 'ListFilterGroupIDs';
 	}
+}
+
 }
