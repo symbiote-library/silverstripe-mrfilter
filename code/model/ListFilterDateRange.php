@@ -91,6 +91,13 @@ class ListFilterDateRange extends ListFilterBase {
 		$startDateField = $this->StartDateField;
 		$endDateField = $this->EndDateField;
 
+		// Use DateField to convert from the date format to 'yyyy-mm-dd' for
+		// database use.
+		$dateField = DBField::create_field('DateField', $start);
+		$start = $dateField->dataValue();
+		$dateField->setValue($end);
+		$end = $dateField->dataValue();
+
 		// Apply filter
 		// todo(Jake): Use ->filter() where possible as that will work with ArrayList
 		if($start && $end) {
