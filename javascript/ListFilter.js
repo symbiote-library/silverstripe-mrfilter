@@ -11,10 +11,13 @@
 			if (date && dateFormat) {
 				// Convert from specific other date formats
 				var dateBits;
-				if (dateFormat === 'd/m/Y') {
-					dateBits = date.split('/');
-					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
-				} else if (dateFormat === 'd-m-Y') {
+				date = date.replace(/\//g, '-');
+				dateFormat = dateFormat.replace(/\//g, '-');
+
+				if (dateFormat === 'yyyy-MM-dd') {
+					dateBits = date.split('-');
+					date = dateBits[0]+'-'+dateBits[1]+'-'+dateBits[2];
+				} else if (dateFormat === 'd-MM-yyyy' || dateFormat === 'dd-MM-yyyy') {
 					dateBits = date.split('-');
 					date = dateBits[2]+'-'+dateBits[1]+'-'+dateBits[0];
 				} else {
@@ -28,18 +31,18 @@
 		var filterEndDate = null;
 		var dateFormat = null;
 
-		// getStartDateAndEndDateFromInptus
+		// getStartDateAndEndDateFromInputs
 		var $inputs = $(this).find('input');
 		$inputs.each(function() {
 			var $input = $(this);
 			var name = $input.attr('name');
 			if (name.indexOf('StartDate') != -1) {
 				filterStartDate = $input.val();
-				dateFormat = $input.data('dateformat');
+				dateFormat = $input.data('isodateformat');
 			} else if (name.indexOf('EndDate') != -1) {
 				filterEndDate = $input.val();
 				if (!dateFormat) {
-					dateFormat = $input.data('dateformat');
+					dateFormat = $input.data('isodateformat');
 				}
 			}
 		});
