@@ -254,6 +254,15 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			}
 			if ($this->getPopupEnabled()) {
 				foreach ($list as $record) {
+					if (!$record->ID) {
+						if ($record instanceof DataObject) {
+							throw new Exception('ID of record must not be 0.');
+						} else if ($record instanceof ArrayData) {
+							throw new Exception('Must set an explicit "ID" on ArrayData for use with map. Just use its position in the ArrayList.');
+						} else {
+							throw new Exception('Must set an explicit "ID" on data for use with map.');
+						}
+					}
 					$popupTemplate = $this->getPopupTemplate($record);
 					if ($popupTemplate && $popupTemplate instanceof HTMLText) {
 						$popupTemplate = $popupTemplate->RAW();

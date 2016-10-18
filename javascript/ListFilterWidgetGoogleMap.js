@@ -83,7 +83,7 @@
     	}
 		var map = $mapElement.data('map');
 		var dependencies = $mapElement.data('map-dependencies');
-		var popupEnabled = (false || $mapElement.data('popup-url') || $mapElement.data('popup'));
+		var popupEnabled = ($mapElement.data('popup-url') || $mapElement.data('popup'));
 		var markerDefaultParameters = $mapElement.data('marker-parameters');
 		if (!markerDefaultParameters || markerDefaultParameters.length === 0) {
 			markerDefaultParameters = {};
