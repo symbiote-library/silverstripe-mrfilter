@@ -3,6 +3,11 @@
 abstract class ListFilterWidget extends Controller {
 	private static $hide_ancestor = 'ListFilterWidget';
 
+	/**
+	 * A custom set list to use for the widget
+	 */
+	protected $list = null;
+
 	/** 
 	 * @var ListFilterForm
 	 */

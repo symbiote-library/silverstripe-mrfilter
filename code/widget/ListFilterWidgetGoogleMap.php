@@ -7,11 +7,6 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	);
 
 	/**
-	 * A custom set list to use for 'getFeatureCollection'
-	 */
-	protected $list = null;
-
-	/**
 	 * Set if the widget loads all feature data and popup data inside 
 	 * the data attributes (false) or via AJAX (true).
 	 *
@@ -97,7 +92,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		$list = $list->filter(array('ID' => $id));
 		$record = $list->first();
 		if (!$record) {
-			$this->getResponse()->setStatusCode(400);
+			$this->getResponse()->setStatusCode(404);
 			return '';
 		}
 		$template = $this->getPopupTemplate($record);
@@ -150,9 +145,10 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				$properties = &$feature['properties'];
 				$properties['ID'] = $record->ID;
 				$properties['Name'] = $record->Title;
+				$properties['IconURL'] = '';
 
 				// Use "updateGeoJSONFeatureArray" from GeoJSON module
-				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature);
+				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature, $this);
 			}
 			if ($filterSetRecord && !isset($properties['FilterGroups'])) {
 				// Add frontend widget filtering information

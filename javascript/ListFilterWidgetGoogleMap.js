@@ -1,6 +1,8 @@
 (function($){
 	"use strict";
 
+	$(document).bind('ListFilterWidgetReinit', initMaps);
+
 	var $mapWidgets = $('.js-listfilter-widget_googlemap');
 	if (!$mapWidgets.length) {
 		return;
@@ -58,7 +60,7 @@
     googleMapScript.setAttribute('src','https://maps.google.com/maps/api/js'+urlParameters);
     (document.getElementsByTagName('head')[0] || document.documentElement).appendChild(googleMapScript);
 
-    function clickMarker() {
+    function ClickMarker() {
     	var $mapElement = $(this.getMap().getDiv());
     	$mapElement.trigger('GoogleMapInfoWindowOpen', [this.record, $mapElement.data('infowindow')]);
     }
@@ -102,7 +104,7 @@
 
 				if (popupEnabled) {
 					// todo: Don't hook if using non-AJAX popup info and its blank/not-set
-					marker.addListener('click', clickMarker);
+					marker.addListener('click', ClickMarker);
 				}
 
 				// Add record
@@ -111,6 +113,9 @@
 				record.ID = recordProperties.ID;
 				record.Properties = recordProperties;
 				record.Marker = marker;
+				if (recordProperties.IconURL !== '') {
+					marker.setIcon(recordProperties.IconURL);
+				}
 				// Add info for live filtering
 				if (typeof recordProperties.FilterGroups !== 'undefined') {
 					record.FilterGroups = recordProperties.FilterGroups;
@@ -280,8 +285,6 @@
     		initMaps();
     	}
 	}
-
-	$(document).bind('ListFilterWidgetReinit', initMaps);
 
 	function initMaps() {
 		if (typeof google === 'undefined') {

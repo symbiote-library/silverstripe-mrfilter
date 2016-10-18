@@ -16,7 +16,7 @@
 		formsInit();
 	});
 
-	function formSubmit(e) {
+	function FormSubmit(e) {
 		e.preventDefault();
 		var $form = $(this);
 		if ($form.data('is-loading') === true) {
@@ -123,7 +123,7 @@
 		});
 	}
 
-	function formFieldChange(e) {
+	function FormFieldChange(e) {
 		var $filterGroupHolder = $(this).parents('.js-listfilter-filter').first();
 		var $form = $(this.form);
 		if (!$filterGroupHolder.length) {
@@ -150,10 +150,10 @@
 				if (it.tagName === 'FIELDSET') {
 					continue;
 				}
-				$(it).change(formFieldChange);
+				$(it).change(FormFieldChange);
 			}
 			if ($form.data('ajax')) {
-				$form.submit(formSubmit);
+				$form.submit(FormSubmit);
 			}
 			$form.data('listfilter-initiated', true);
 			$form.trigger('ListFilterFormInit');
