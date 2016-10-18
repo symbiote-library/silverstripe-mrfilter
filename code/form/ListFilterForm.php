@@ -102,6 +102,15 @@ class ListFilterForm extends Form {
 		// necessary (ie. ListFilterSolrFacet)
 		$this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
 	}
+    
+    /**
+     * Get the underlying result set this form has filtered down
+     * 
+     * @return PaginatedList
+     */
+    public function getResultList() {
+        return $this->resultList;
+    }
 
 	/**
 	 * Opening tag for the <form>. Useful for splitting various fields across the page
