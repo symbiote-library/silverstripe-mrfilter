@@ -41,6 +41,14 @@ class ListFilterForm extends Form {
 	 */
 	protected $widget = null;
 
+	/**
+	 * @var boolean
+	 */
+	protected $processedOnBeforeRender = false;
+
+	/**
+	 * @var string
+	 */
 	protected $formMethod = 'GET';
 
 	public function __construct($controller, $name, ListFilterSet $listFilterSet = null) {
@@ -74,13 +82,7 @@ class ListFilterForm extends Form {
 		}
 		// NOTE(Jake): This is required to link the <form> and map <div> together (2016-08-23)
 		$this->setAttribute('data-listfilter-id', $this->getRecord()->ID);
-		$backendFilterGroupData = $this->FilterBackendData();
-		if ($backendFilterGroupData && is_array($backendFilterGroupData)) {
-			$this->setAttribute('data-listfilter-backend', json_encode($backendFilterGroupData));
-		} else {
-			// Empty JS object/map
-			$this->setAttribute('data-listfilter-backend', '{}');
-		}
+		$this->setAttribute('data-listfilter-backend', '{}');
 		$this->setAttribute('data-ajax', (int)$this->getAJAXEnabled());
 
 		// Retain selections
@@ -119,6 +121,8 @@ class ListFilterForm extends Form {
 	 * @return string
 	 */
 	public function TagStart() {
+		$this->onBeforeRenderAll();
+
 		$this->IncludeFormTag = false;
 		return '<form '.$this->getAttributesHTML().'>';
 	}
@@ -290,6 +294,21 @@ class ListFilterForm extends Form {
 			return null;
 		}
 		return $controller->data();
+	}
+
+	/**
+	 * Process the filter backend data before rendering the form.
+	 */
+	public function processFilterBackendData() {
+		// todo(Jake): ensure this doesn't affect AJAX performance unnecessarily.
+		//			   ie. doGetListing_Ajax
+
+		// Process widget (if set)
+		$backendFilterGroupData = $this->FilterBackendData();
+		if ($backendFilterGroupData && is_array($backendFilterGroupData)) {
+			$this->setAttribute('data-listfilter-backend', json_encode($backendFilterGroupData));
+		}
+		$this->processedFilterBackendData = true;
 	}
 
 	/**
@@ -479,14 +498,41 @@ class ListFilterForm extends Form {
 		return $this->controller->redirect($this->controller->Link().$queryVars);
 	}
 
-	public function onBeforeRender() {
+	/**
+	 * Add CSS/JavaScript requirements for form.
+	 *
+	 * @return void
+	 */
+	public function addRequirements() {
 		Requirements::javascript(ListFilterUtility::MODULE_DIR.'/javascript/ListFilter.js');
 		Requirements::javascript(ListFilterUtility::MODULE_DIR.'/javascript/ListFilterForm.js');
 	}
 
-	public function forTemplate() {
+	/**
+	 * @return void
+	 */
+	public function onBeforeRender() {
+	}
+
+	/**
+	 * @return void
+	 */
+	final public function onBeforeRenderAll() {
+		if ($this->processedOnBeforeRender) {
+			return;
+		}
+		$this->processFilterBackendData();
 		$this->onBeforeRender();
 		$this->extend('onBeforeRender', $this);
+
+		$this->processedOnBeforeRender = true;
+	}
+
+
+	public function forTemplate() {
+		$this->addRequirements();
+		$this->onBeforeRenderAll();
+
 		// Failover to current page
 		// todo(Jake): Perhaps change this to $this->getPage()
 		$this->failover = $this->getRecord();
