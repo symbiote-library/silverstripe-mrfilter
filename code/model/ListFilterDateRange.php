@@ -98,6 +98,11 @@ class ListFilterDateRange extends ListFilterBase {
 		$dateField->setValue($end);
 		$end = $dateField->dataValue();
 
+		// Default blank date to anything in the future
+		if (!$start) {
+			$start = date('Y-m-d');
+		}
+
 		// Apply filter
 		// todo(Jake): Use ->filter() where possible as that will work with ArrayList
 		if($start && $end) {
