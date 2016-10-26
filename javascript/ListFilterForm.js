@@ -66,10 +66,68 @@
 				template = data;
 			}
 			if (template.indexOf('<form') > -1) {
-				$form.replaceWith(data);
-				// todo(Jake): figure out how to get JS functionality (like jQuery UI datepicker, etc) to not break across elements.
-				//			   maybe diff the HTML and insert $Message stuff where appropriate?
-				formsInit();
+				var validateBefore = $form.triggerHandler('ListFilterFormValidateBefore', [data, textStatus, jqXHR]);
+				if (validateBefore === false) {
+					// Stop default execution.
+					return;
+				}
+				// todo(Jake): Ideally make this more robust and "diff" the two HTML sets better.
+				// Extract error message elements out of form and place semi-appropriately.
+				var errorMessageQuery = '.message.validation, .message.required, .message.warning, .message.error';
+				if (typeof validateBefore === 'string' && validateBefore !== '') {
+					errorMessageQuery = validateBefore;
+				}
+
+				var $dataForm = $(data);
+				if ($dataForm.length === 0) {
+					debugLog('Cannot find <form> element.');
+					return;
+				}
+				if ($dataForm[0].tagName !== 'FORM') {
+					$dataForm = $form.find('form').first();
+					if ($dataForm.length === 0 || $dataForm[0].tagName !== 'FORM') {
+						debugLog('Cannot find <form> element.');
+						return;
+					}
+				}
+				var form = $dataForm[0];
+				for (var fieldIndex = 0; fieldIndex < form.elements.length; ++fieldIndex) {
+					var dataField = form.elements[fieldIndex];
+					if (dataField.tagName === 'FIELDSET' || dataField.tagName === 'BUTTON') {
+						continue;
+					}
+					var $dataErrorMessage = null;
+					var $formField = null;
+					var dataFieldParent = dataField.parentNode;
+					// Handle when <span class="message"> is under FormField.ss template
+					$dataErrorMessage = $(dataFieldParent.childNodes).filter(errorMessageQuery).first();
+					if ($dataErrorMessage.length > 0) {
+						$formField = $form.find('[name="'+dataField.name+'"]').first();
+						if ($formField.length > 0) {
+							$formField.siblings().find(errorMessageQuery).remove();
+							if ($(dataField).nextAll(errorMessageQuery).length > 0) {
+								$formField.after($dataErrorMessage);
+							} else {
+								$formField.before($dataErrorMessage);
+							}
+						}
+					}
+					// Handle when <span class="message"> is under FieldHolder.ss template
+					$dataErrorMessage = $(dataFieldParent.parentNode.childNodes).filter(errorMessageQuery).first();
+					if ($dataErrorMessage.length > 0) {
+						$formField = $form.find('[name="'+dataField.name+'"]').first();
+						if ($formField.length > 0) {
+							var $middleColumn = $formField.parent();
+							var $holder = $middleColumn.parent();
+							$holder.find(errorMessageQuery).remove();
+							if ($(dataField).parent().nextAll(errorMessageQuery).length > 0) {
+								$holder.append($dataErrorMessage);
+							} else {
+								$holder.prepend($dataErrorMessage);
+							}
+						}
+					}
+				}
 			} else {
 				// Update listing areas specifically using the same 'data-listfilter-id'
 				$relatedListing.html(template);
