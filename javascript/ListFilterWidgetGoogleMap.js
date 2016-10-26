@@ -1,7 +1,7 @@
 (function($){
 	"use strict";
 
-	$(document).bind('ListFilterWidgetReinit', initMaps);
+	$(document).on('ListFilterWidgetReinit', initMaps);
 
 	var $mapWidgets = $('.js-listfilter-widget_googlemap');
 	if (!$mapWidgets.length) {
@@ -163,7 +163,57 @@
 			$mapElement.data('markerclusterer', markerCluster);
 		}
 
-		$mapElement.bind('GoogleMapShowAllVisibleMarkers', function(e, callback) {
+		$mapElement.on('GoogleMapInfoWindowOpen', function(e, record, infoWindow) {
+			var $mapElement = $(this);
+			var map = $mapElement.data('map');
+
+			var content = record.Properties.InfoWindow;
+			if (!content) {
+				var infowindow = $mapElement.data('popup');
+				if (infowindow) {
+					record.Properties.InfoWindow = infowindow[record.ID];
+				} else {
+					var url = $mapElement.data('popup-url');
+					if (url) {
+						url += '?ID='+record.ID;
+						if (typeof cacheAjaxURL[url] !== 'undefined' && cacheAjaxURL[url] !== true) {
+							if (cacheAjaxURL[url]) {
+								record.Properties.InfoWindow = cacheAjaxURL[url];
+							}
+						} else {
+							cacheAjaxURL[url] = false;
+							$.ajax({
+								type: 'GET',
+								url: url,
+								async: true,
+								crossDomain: true,
+								headers: {
+									'X-Requested-With': 'XMLHttpRequest'
+								}
+							}).done(function(data) {
+								cacheAjaxURL[url] = data;
+								record.Properties.InfoWindow = data;
+								$mapElement.trigger('GoogleMapInfoWindowOpen', [record, infoWindow]);
+							}).fail(function() {
+								cacheAjaxURL[url] = true;
+							});
+						}
+					}
+				}
+	    	}
+
+	        content = record.Properties.InfoWindow;
+			if (content) {
+				infoWindow.setContent(content);
+			} else {
+				infoWindow.setContent($mapElement.data('popup-loading'));
+			}
+			infoWindow.setPosition(record.Marker.getPosition());
+			infoWindow.setOptions({pixelOffset: new google.maps.Size(0, -30)});
+			infoWindow.open(map);
+	    });
+
+		$mapElement.on('GoogleMapShowAllVisibleMarkers', function(e, callback) {
 			var $mapElement = $(this);
 			var records = $mapElement.data('listfilter-records');
 			if (records.length === 0) {
@@ -212,57 +262,6 @@
 		$mapElement.trigger('ListFilterWidgetInit');
 		return true;
     }
-
-    //
-    $mapWidgets.bind('GoogleMapInfoWindowOpen', function(e, record, infoWindow) {
-    	var $mapElement = $(this);
-    	var map = $mapElement.data('map');
-
-    	var content = record.Properties.InfoWindow;
-    	if (!content) {
-    		var infowindow = $mapElement.data('popup');
-    		if (infowindow) {
-    			record.Properties.InfoWindow = infowindow[record.ID];
-    		} else {
-				var url = $mapElement.data('popup-url');
-				if (url) {
-					url += '?ID='+record.ID;
-					if (typeof cacheAjaxURL[url] !== 'undefined' && cacheAjaxURL[url] !== true) {
-						if (cacheAjaxURL[url]) {
-							record.Properties.InfoWindow = cacheAjaxURL[url];
-						}
-					} else {
-						cacheAjaxURL[url] = false;
-						$.ajax({
-							type: 'GET',
-							url: url,
-							async: true,
-							crossDomain: true,
-							headers: {
-							    'X-Requested-With': 'XMLHttpRequest'
-							}
-				        }).done(function(data) {
-				        	cacheAjaxURL[url] = data;
-				        	record.Properties.InfoWindow = data;
-				        	$mapElement.trigger('GoogleMapInfoWindowOpen', [record, infoWindow]);
-				        }).fail(function() {
-				        	cacheAjaxURL[url] = true;
-				        });
-			    	}
-			    }
-			}
-    	}
-
-        content = record.Properties.InfoWindow;
-		if (content) {
-			infoWindow.setContent(content);
-		} else {
-			infoWindow.setContent($mapElement.data('popup-loading'));
-		}
-		infoWindow.setPosition(record.Marker.getPosition());
-		infoWindow.setOptions({pixelOffset: new google.maps.Size(0, -30)});
-		infoWindow.open(map);
-    });
 
     function markerClustererCalculator(markers, numStyles) {
     	var index = Math.min(0, numStyles);
@@ -323,7 +322,7 @@
 			}
 
 			// Update visibility of markers based on filter criterion.
-			$(this).bind('ListFilterRecordsUpdate', function(e, records, setVisible) {
+			$(this).on('ListFilterRecordsUpdate', function(e, records, setVisible) {
 				for (var i = 0; i < records.length; ++i) {
 					records[i].Marker.setVisible(setVisible);
 				}
