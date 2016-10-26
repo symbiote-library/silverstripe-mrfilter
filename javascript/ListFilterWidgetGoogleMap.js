@@ -83,6 +83,7 @@
     	}
 		var map = $mapElement.data('map');
 		var dependencies = $mapElement.data('map-dependencies');
+		var isMousezoomLocked = $mapElement.data('is-scrollwheel-locked');
 		var popupEnabled = ($mapElement.data('popup-url') || $mapElement.data('popup'));
 		var markerDefaultParameters = $mapElement.data('marker-parameters');
 		if (!markerDefaultParameters || markerDefaultParameters.length === 0) {
@@ -125,6 +126,26 @@
 	    	} else {
 	    		console.log('Unsupported feature type ' + feature.geometry.type);
 	    	}
+		}
+
+		// Setup mouse zoom locking
+		if (isMousezoomLocked) {
+			map.setOptions({scrollwheel:false});
+			google.maps.event.addListener(map, 'click', function (e) {
+				if (!this.scrollwheel) {
+					this.setOptions({scrollwheel:true});
+				}
+			});
+
+			$(document).on('click', function(event) {
+				if(map.scrollwheel && $mapElement.find(event.target).length === 0) {
+					map.setOptions({scrollwheel:false});
+				}
+			});
+
+			google.maps.event.addListener(map, 'mouseout', function (e) {
+				this.setOptions({scrollwheel:false});
+			});
 		}
 
 		// Setup cluster

@@ -14,7 +14,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 *
 	 * @var boolean
 	 */
-	protected $ajax_enabled = null;
+	protected $ajaxEnabled = null;
 
 	/**
 	 * Set if the widget loads a template when clicking a marker.
@@ -23,7 +23,17 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 *
 	 * @var boolean
 	 */
-	protected $popup_enabled = null;
+	protected $popupEnabled = null;
+
+	/**
+	 * Set if the widget will not zoom on mouse scroll until
+	 * being clicked/focused.
+	 *
+	 * Set to null to use 'default_is_scrollwheel_locked_disabled' config.
+	 *
+	 * @var boolean
+	 */
+	protected $isScrollwheelLocked = null;
 
 	/**
 	 * The Google Maps API key
@@ -46,6 +56,13 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @var boolean
 	 */
 	private static $default_popup_disabled = false;
+
+	/**
+	 * Configure the widget to either not lock/unlock scrollzoom on map focus/unfocus.
+	 *
+	 * @var boolean
+	 */
+	private static $default_is_scrollwheel_locked_disabled = false;
 
 	/**
 	 * Uses a basic 'LastEdited' check against the list for caching the 'getFeatureCollection'
@@ -164,10 +181,29 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	}
 
 	/**
-	 * @return ListFilterWidgetGoogleMap
+	 * @return boolean
+	 */
+	public function setIsScrollwheelLocked($value) {
+		$this->isScrollwheelLocked = $value;
+		return $this;
+	}
+
+	/**
+	 * @return boolean
+	 */
+	public function getIsScrollwheelLocked() {
+		$result = $this->isScrollwheelLocked;
+		if ($result === null) {
+			return ($this->config()->default_is_scrollwheel_locked_disabled == false);
+		}
+		return $result;
+	}
+
+	/**
+	 * @return $this
 	 */
 	public function setAJAXEnabled($value) {
-		$this->ajax_enabled = $value;
+		$this->ajaxEnabled = $value;
 		return $this;
 	}
 
@@ -175,7 +211,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return boolean
 	 */
 	public function getAJAXEnabled() {
-		$result = $this->ajax_enabled;
+		$result = $this->ajaxEnabled;
 		if ($result === null) {
 			return ($this->config()->default_ajax_disabled == false);
 		}
@@ -186,7 +222,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return $this
 	 */
 	public function setPopupEnabled($value) {
-		$this->popup_enabled = $value;
+		$this->popupEnabled = $value;
 		return $this;
 	}
 
@@ -194,7 +230,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @return boolean
 	 */
 	public function getPopupEnabled() {
-		$result = $this->popup_enabled;
+		$result = $this->popupEnabled;
 		if ($result === null) {
 			return ($this->config()->default_popup_disabled == false);
 		}
@@ -229,11 +265,6 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			$latitude = $page->Lat;
 			$longitude = $page->Lng;
 		}
-		$filterSetRecord = $this->getListFilterSet();
-		if ((!$latitude || !$longitude) && $filterSetRecord) {
-			$latitude = $filterSetRecord->Lat;
-			$longitude = $filterSetRecord->Lng;
-		}
 
 		// Setup attributes
 		$attributes = array();
@@ -267,7 +298,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 					if ($popupTemplate && $popupTemplate instanceof HTMLText) {
 						$popupTemplate = $popupTemplate->RAW();
 					}
-					// If the template outputs empty HTML, don't attach any popup
+					// If the template outputs empty/whitespace-only HTML, don't attach any popup
 					// template data, and implictly disable.
 					if (is_string($popupTemplate)) {
 						$popupTemplate = trim($popupTemplate);
@@ -283,6 +314,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		}
 
 		$attributes = array_merge($attributes, array(
+			'is-scrollwheel-locked' => $this->getIsScrollwheelLocked(),
 			'map-dependencies' => array(
 				'markerclusterer' => array(
 					'script' => Director::absoluteBaseURL().'/'.ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/markerclusterer.min.js',
@@ -299,7 +331,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				'center' => array(
 					'lat' => (float)$latitude,
 					'lng' => (float)$longitude,
-				),
+				)
 			),
 			'marker-parameters'	=> array(
 				//'icon' => 'themes/mythemefolder/images/maps-icons/default.png'

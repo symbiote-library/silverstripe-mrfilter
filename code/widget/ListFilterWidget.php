@@ -152,7 +152,11 @@ abstract class ListFilterWidget extends Controller {
 	/**
 	 * @return string
 	 */
+	protected $_cache_data_attributes_html = null;
 	public function DataAttributesHTML() {
+		if ($this->_cache_data_attributes_html !== null) {
+			return $this->_cache_data_attributes_html;
+		}
 		$result = '';
 		$attributes = $this->getDataAttributesAll();
 		foreach ($attributes as $attribute => $value) {
@@ -163,7 +167,7 @@ abstract class ListFilterWidget extends Controller {
 				$result .= 'data-'.$attribute.'="'.$value.'" ';
 			}
 		}
-		return rtrim($result);
+		return $this->_cache_data_attributes_html = rtrim($result);
 	}
 
 	/**

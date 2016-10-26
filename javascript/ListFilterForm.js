@@ -22,6 +22,11 @@
 		if ($form.data('is-loading') === true) {
 			return;
 		}
+		var ajaxBefore = $form.triggerHandler('ListFilterAJAXBefore');
+		if (ajaxBefore === false) {
+			return;
+		}
+
 		// Update listing areas specifically using the same 'data-listfilter-id'
 		var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 		// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
@@ -39,9 +44,7 @@
 		for (var l = 0; l < loadingElements.length; ++l) {
 			$(loadingElements[l]).addClass(loadingClass);
 		}
-
 		$.support.cors = true;
-		$form.trigger('ListFilterAJAXBefore');
 		$form.data('is-loading', true);
 		$.ajax({
 			type: 'GET',
