@@ -65,6 +65,18 @@
     	$mapElement.trigger('GoogleMapInfoWindowOpen', [this.record, $mapElement.data('infowindow')]);
     }
 
+    function ScrollwheelFocusMap() {
+    	if (!this.scrollwheel) {
+			this.setOptions({scrollwheel:true});
+		}
+    }
+
+    function ScrollwheelBlurMap() {
+    	if (this.scrollwheel) {
+			this.setOptions({scrollwheel:false});
+		}
+    }
+
     function loadFeaturesForMap(mapElement) {
     	var $mapElement = $(mapElement);
     	if (!$mapElement.data('map') || $mapElement.data('listfilter-records')) {
@@ -131,20 +143,13 @@
 		// Setup mouse zoom locking
 		if (isMousezoomLocked) {
 			map.setOptions({scrollwheel:false});
-			google.maps.event.addListener(map, 'click', function (e) {
-				if (!this.scrollwheel) {
-					this.setOptions({scrollwheel:true});
-				}
-			});
-
+			google.maps.event.addListener(map, 'click', ScrollwheelFocusMap);
+			google.maps.event.addListener(map, 'mousedown', ScrollwheelFocusMap);
+			google.maps.event.addListener(map, 'mouseout', ScrollwheelBlurMap);
 			$(document).on('click', function(event) {
 				if(map.scrollwheel && $mapElement.find(event.target).length === 0) {
-					map.setOptions({scrollwheel:false});
+					ScrollwheelBlurMap.call(map);
 				}
-			});
-
-			google.maps.event.addListener(map, 'mouseout', function (e) {
-				this.setOptions({scrollwheel:false});
 			});
 		}
 
