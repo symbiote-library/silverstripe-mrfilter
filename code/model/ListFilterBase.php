@@ -92,6 +92,8 @@ class ListFilterBase extends DataObject {
 
 	/**
 	 * Get config variables to utilize with the JavaScript callback.
+	 * This data is attached to '.js-listfilter-filter' elements.
+	 *
 	 * ie. $(this).data('data-fieldgroup-config')
 	 *
 	 * @return array
@@ -135,7 +137,7 @@ class ListFilterBase extends DataObject {
     
     /**
      * Allow inspection of SS_List and shared filters to change current objects state.
-     * ie. ListFilterSolrFacet gets facets from the 
+     * ie. ListFilterSolrFacet gets facets and updates its CheckboxSetField
      *
      * @param SS_List $list
      */
@@ -170,7 +172,7 @@ class ListFilterBase extends DataObject {
 	 * The name of the event to pass to 
 	 * jQuery('.js-listfilter-filter').triggerHandler()
 	 *
-	 * For examples, check 'MapWidgetFilterGroup.js'
+	 * For examples, check 'ListFilter.js'
 	 *
 	 * @return string
 	 */

@@ -31,6 +31,7 @@
 		var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 		// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
 		var $globalListing = $('.js-listfilter-listing:not([data-listfilter-id])');
+		var $relatedWidget = $('.js-listfilter-widget[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 
 		// Add class to signify its loading
 		// todo(Jake): Make state class below configurable
@@ -38,8 +39,15 @@
 		var loadingElements = [];
 		if (loadingClass) {
 			loadingElements.push($form);
-			loadingElements.push($relatedListing);
-			loadingElements.push($globalListing);
+			if ($relatedListing.length > 0) {
+				loadingElements.push($relatedListing);
+			}
+			if ($globalListing.length > 0) {
+				loadingElements.push($globalListing);
+			}
+			if ($relatedWidget.length > 0) {
+				loadingElements.push($relatedWidget);
+			}
 		}
 		for (var l = 0; l < loadingElements.length; ++l) {
 			$(loadingElements[l]).addClass(loadingClass);
@@ -232,7 +240,7 @@
 	$('.js-listfilter-form').bind('ListFilterFormUpdate', function(e) {
 		var $form = $(this);
 		var $widget = $form.data('widget');
-		if (typeof $widget === 'undefined' || !$widget || !$widget.length) {
+		if (typeof $widget === 'undefined' || !$widget || !$widget.length || !$widget.is(':visible')) {
 			// debugLog('js-listfilter-form::ListFilterFormUpdate: Missing widget element, ie. element that matches: .js-listfilter[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 			return;
 		}

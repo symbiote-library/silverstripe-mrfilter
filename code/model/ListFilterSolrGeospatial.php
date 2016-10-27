@@ -67,11 +67,17 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	 * {@inheritdoc}
 	 */
 	public function getFilterConfig(array $data) {
+		$userLatLng = $this->getUserLatLng($data);
+		$lat = null;
+		$lng = null;
+		if ($userLatLng) {
+			$lat = (isset($userLatLng[0])) ? (double)$userLatLng[0] : null;
+			$lng = (isset($userLatLng[1])) ? (double)$userLatLng[1] : null;
+		}
 		return array(
 			'Radius' => $this->Radius(),
-			// NOTE(Jake): Pass a Lat/Lng to filter by nearby locations based on the Radius for the Widget.
-			// 'Lat' => 0.0000,
-			// 'Lng' => 0.0000,
+			'Lat' => $lat,
+			'Lng' => $lng,
 		);
 	}
 
@@ -81,6 +87,8 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	public function getFilterData(DataObject $record) {
 		return array(
 			'value' => array(
+				// Save the "ListFilterLatLngRadius" JavaScript callback some CPU
+				// cycles by doing this calculation ahead-of-time.
 				'Lat' 	 => deg2rad($record->Lat),
 				'Lng' 	 => deg2rad($record->Lng),
 			)

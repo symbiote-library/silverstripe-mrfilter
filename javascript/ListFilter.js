@@ -187,19 +187,9 @@
 
 		var userLat = 0, 
 			userLng = 0;
-		var result = $(this).triggerHandler('getUserLatLng');
-		if (typeof result !== 'undefined' && result) {
-			userLat = result.Lat;
-			userLng = result.Lng;
-		} else {
-			if (result === false) {
-				// Allow the user-code to disable filtering by returning false with 'getUserLatLng'
-				return null;
-			}
-			if (typeof config.Lat !== 'undefined' && typeof config.Lng !== 'undefined' && config.Lat && config.Lng) {
-				userLat = config.Lat;
-				userLng = config.Lng;
-			}
+		if (typeof config.Lat !== 'undefined' && typeof config.Lng !== 'undefined' && config.Lat && config.Lng) {
+			userLat = config.Lat;
+			userLng = config.Lng;
 		}
 
 		if (userLat === 0 || userLng === 0) {
