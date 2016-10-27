@@ -1,0 +1,4 @@
+en:
+  ListFilterDateRange:
+    START_DATE: 'Start Date'
+    END_DATE: 'End Date'

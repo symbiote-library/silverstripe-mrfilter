@@ -42,8 +42,8 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
-		$fields->push(DateField::create('StartDate', 'Start Date'));
-		$fields->push(DateField::create('EndDate', 'End Date'));
+		$fields->push(DateField::create('StartDate', _t('ListFilterDateRange.START_DATE', 'Start Date')));
+		$fields->push(DateField::create('EndDate', _t('ListFilterDateRange.END_DATE', 'End Date')));
 		return $fields;
 	}
 
