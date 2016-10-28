@@ -17,8 +17,11 @@
 	});
 
 	function FormSubmit(e) {
-		e.preventDefault();
 		var $form = $(this);
+		if (!$form.data('ajax')) {
+			return true;
+		}
+		e.preventDefault();
 		if ($form.data('is-loading') === true) {
 			return;
 		}
@@ -222,8 +225,10 @@
 				$(it).change(FormFieldChange);
 			}
 			if ($form.data('ajax')) {
-				$form.submit(FormSubmit);
+				$form.on('submit', FormSubmit);
 			}
+			$form.on('ListFilterFormSubmit', FormSubmit);
+
 			$form.data('listfilter-initiated', true);
 			$form.trigger('ListFilterFormInit');
 		});
