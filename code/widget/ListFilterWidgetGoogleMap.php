@@ -6,6 +6,9 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		'doGetPopup',
 	);
 
+	const CENTER_LATITUDE = 0;
+	const CENTER_LONGITUDE = 1;
+
 	/**
 	 * Set if the widget loads all feature data and popup data inside 
 	 * the data attributes (false) or via AJAX (true).
@@ -34,6 +37,14 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 * @var boolean
 	 */
 	protected $isScrollwheelLocked = null;
+
+	/**
+	 * Set the center position of the map, if none set, it will default to
+	 * the current set record or pages 'Lat' and 'Lng' fields.
+	 *
+	 * @var array
+	 */
+	protected $center = array(null, null);
 
 	/**
 	 * The Google Maps API key
@@ -202,6 +213,22 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	/**
 	 * @return $this
 	 */
+	public function setCenter($latitude, $longitude) {
+		$this->center[self::CENTER_LATITUDE] = (double)$latitude;
+		$this->center[self::CENTER_LONGITUDE] = (double)$longitude;
+		return $this;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getCenter() {
+		return $this->center;
+	}
+
+	/**
+	 * @return $this
+	 */
 	public function setAJAXEnabled($value) {
 		$this->ajaxEnabled = $value;
 		return $this;
@@ -260,10 +287,19 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 		// NOTE(Jake): 0,0 = the map will set the center based on all the markers.
 		$latitude = 0;
 		$longitude = 0;
-		$page = $this->getPage();
-		if ($page) {
-			$latitude = $page->Lat;
-			$longitude = $page->Lng;
+		$center = $this->getCenter();
+		if ($center && $center[self::CENTER_LATITUDE] !== null && $center[self::CENTER_LONGITUDE] !== null) {
+			$latitude = $center[self::CENTER_LATITUDE];
+			$longitude = $center[self::CENTER_LONGITUDE];
+		} else {
+			$record = $this->getRecord();
+			if (!$record) {
+				$record = $this->getPage();
+			}
+			if ($record) {
+				$latitude = $record->Lat;
+				$longitude = $record->Lng;
+			}
 		}
 
 		// Setup attributes
@@ -329,8 +365,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 			'map-parameters' => array(
 				'zoom' => 6,
 				'center' => array(
-					'lat' => (float)$latitude,
-					'lng' => (float)$longitude,
+					'lat' => (double)$latitude,
+					'lng' => (double)$longitude,
 				)
 			),
 			'marker-parameters'	=> array(
