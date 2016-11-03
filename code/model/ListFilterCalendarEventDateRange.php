@@ -46,7 +46,7 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 		$fields = parent::getFilterFields();
 		$startDateField = $fields->dataFieldByName('StartDate');
 		if ($startDateField) {
-			$startDateField->setValue(date('Y-m-d'));
+			$startDateField->setValue(SS_Datetime::now()->Format('Y-m-d'));
 		}
 		return $fields;
 	}

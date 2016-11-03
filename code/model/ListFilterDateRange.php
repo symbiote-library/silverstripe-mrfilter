@@ -100,7 +100,7 @@ class ListFilterDateRange extends ListFilterBase {
 
 		// Default blank date to anything in the future
 		if (!$start) {
-			$start = date('Y-m-d');
+			$start = SS_Datetime::now()->Format('Y-m-d');
 		}
 
 		// Apply filter

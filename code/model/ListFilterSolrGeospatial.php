@@ -26,7 +26,7 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	 *
 	 * @var int
 	 */
-	private static $default_radius = 20;
+	private static $default_radius = 30;
 
 	/**
 	 * Sort by the nearest to furthest if true.
