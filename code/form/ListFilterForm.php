@@ -2,7 +2,7 @@
 
 class ListFilterFormValidator extends RequiredFields {
 	// NOTE(Jake): Maybe make validator functionality perform on each 'FilterGroups()' list
-	//			   in the future if necessary.
+	//             in the future if necessary.
 }
 
 class ListFilterForm extends Form {
@@ -104,15 +104,15 @@ class ListFilterForm extends Form {
 		// necessary (ie. ListFilterSolrFacet)
 		$this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
 	}
-    
-    /**
-     * Get the underlying result set this form has filtered down
-     * 
-     * @return PaginatedList
-     */
-    public function getResultList() {
-        return $this->resultList;
-    }
+	
+	/**
+	 * Get the underlying result set this form has filtered down
+	 * 
+	 * @return PaginatedList
+	 */
+	public function getResultList() {
+		return $this->resultList;
+	}
 
 	/**
 	 * Opening tag for the <form>. Useful for splitting various fields across the page
@@ -134,6 +134,24 @@ class ListFilterForm extends Form {
 	 */
 	public function TagEnd() {
 		return '</form>';
+	}
+
+	/** 
+	 * Detect if the form has been submitted.
+	 *
+	 * @return boolean
+	 */
+	public function getHasSubmitted() {
+		$actions = $this->Actions();
+		if (!$actions) {
+			return false;
+		}
+		$formData = $this->getVarData();
+		$result = false;
+		foreach ($actions as $action) {
+			$result = $result || (isset($formData[$action->getName()]));
+		}
+		return $result;
 	}
 
 	/**
@@ -228,6 +246,28 @@ class ListFilterForm extends Form {
 		$actions = $this->getFormActions();
 		$this->extend('updateFormActions', $actions);
 		return $actions;
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function loadDataFrom($data, $mergeStrategy = 0, $fieldList = null) {
+		$result = parent::loadDataFrom($data, $mergeStrategy, $fieldList);
+
+		$dataFields = $this->Fields()->dataFields();
+		foreach($dataFields as $fieldName => $dataField) {
+			if ($dataField instanceof CheckboxSetField) {
+				// Stop bad validation when a facet/checkbox option is removed dynamically
+				// in 'ListFilterBase::finalizeFilter()'. (ie. Solr result set returns new options that dont
+				// exist, but the value is still set)
+				$value = $dataField->Value();
+				if ($value && is_array($value)) {
+					$value = array_intersect($value, array_keys($dataField->getSourceAsArray()));
+					$dataField->setValue($value);
+				}
+			}
+		}
+		return $result;
 	}
 
 	/**
@@ -438,8 +478,8 @@ class ListFilterForm extends Form {
 		if (Director::is_ajax()) {
 			if (!$this->getAJAXEnabled()) {
 				$exception = new SS_HTTPResponse_Exception('Invalid operation.', 500);
- 				$exception->getResponse()->addHeader('X-Status', $exception->getMessage());
-    			throw $exception;
+				$exception->getResponse()->addHeader('X-Status', $exception->getMessage());
+				throw $exception;
 			}
 			$result = $this->doGetListing_Ajax($data);
 			if (is_array($result)) {
@@ -488,7 +528,7 @@ class ListFilterForm extends Form {
 		unset($getVars['url']);
 		unset($getVars['_method']);
 		foreach ($getVars as $field => $value) {
-			if (!$value || substr($field,0,7) === 'action_') {
+			if (!$value) {
 				unset($getVars[$field]);
 			}
 		}
