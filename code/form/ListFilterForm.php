@@ -393,11 +393,13 @@ class ListFilterForm extends Form {
 				$data['ThisPage'] = $list->CurrentPage();
 				$data['TotalPages'] = $list->TotalPages();
 				$data['OffsetEnd'] = $start + $list->getPageLength();
+				if ($data['OffsetEnd'] === 0) {
+					$data['OffsetEnd'] = $data['OffsetStart'];
+				}
 
-				$pageLength = $list->getPageLength();
 				if ($data['OffsetEnd'] > $data['TotalCount']) {
 					$data['OffsetEnd'] = $data['TotalCount'];
-				}
+				} 
 				$data['Count'] = $data['OffsetEnd'] - $data['OffsetStart'];
 			} else {
 				$data['TotalCount'] = 0;

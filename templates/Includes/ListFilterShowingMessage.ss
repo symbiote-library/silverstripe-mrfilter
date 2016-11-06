@@ -11,7 +11,9 @@ Available:
 	- $OffsetEnd
 --%>
 <% if $TotalCount == 0 %>
-	Currently showing no results
+	<%t ListFilterShowingMessage.RESULT_ZERO "Currently showing no results" %>
+<% else_if $TotalCount == 1 %>
+	<%t ListFilterShowingMessage.RESULT_SINGLE "Currently showing 1 result" %>
 <% else %>
-	Currently showing {$OffsetStart}-{$OffsetEnd} out of {$TotalCount} results
+	<%t ListFilterShowingMessage.RESULT_RANGE "Currently showing {OffsetStart}-{OffsetEnd} of {TotalCount} results" OffsetStart=$OffsetStart OffsetEnd=$OffsetEnd TotalCount=$TotalCount ThisPage=$ThisPage TotalPages=$TotalPages %>
 <% end_if %>

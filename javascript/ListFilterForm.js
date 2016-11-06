@@ -35,6 +35,7 @@
 		// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
 		var $globalListing = $('.js-listfilter-listing:not([data-listfilter-id])');
 		var $relatedWidget = $('.js-listfilter-widget[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+		var $showingMessage = $('.js-listfilter-listing-showingmessage');
 
 		// Add class to signify its loading
 		// todo(Jake): Make state class below configurable
@@ -42,22 +43,17 @@
 		var loadingElements = [];
 		if (loadingClass) {
 			loadingElements.push($form);
-			if ($relatedListing.length > 0) {
-				loadingElements.push($relatedListing);
-			}
-			if ($globalListing.length > 0) {
-				loadingElements.push($globalListing);
-			}
-			if ($relatedWidget.length > 0) {
-				loadingElements.push($relatedWidget);
-			}
+			if ($relatedListing.length > 0) { loadingElements.push($relatedListing); }
+			if ($globalListing.length > 0)  { loadingElements.push($globalListing);  }
+			if ($relatedWidget.length > 0)  { loadingElements.push($relatedWidget);  }
+			if ($showingMessage.length > 0) { loadingElements.push($showingMessage); }
 		}
 		for (var l = 0; l < loadingElements.length; ++l) {
 			$(loadingElements[l]).addClass(loadingClass);
 		}
-		$.support.cors = true;
+		jQuery.support.cors = true;
 		$form.data('is-loading', true);
-		$.ajax({
+		jQuery.ajax({
 			type: 'GET',
 			url: $form.attr('action'),
 			crossDomain: true,

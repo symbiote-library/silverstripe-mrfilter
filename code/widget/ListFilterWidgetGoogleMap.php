@@ -373,11 +373,13 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				//'icon' => 'themes/mythemefolder/images/maps-icons/default.png'
 			),
 			'init-parameters'	=> array(
-				'key' 	    => $this->getAPIKey(),
 				'libraries' => 'places',
 				'callback'  => 'initSSMapWidget',
 			),
 		));
+		if ($apiKey = $this->getAPIKey()) {
+			$attributes['init-parameters']['key'] = $apiKey;
+		}
 
 		$attributes = array_merge(parent::getDataAttributes(), $attributes);
 		return $attributes;

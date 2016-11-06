@@ -21,6 +21,15 @@ class ListFilterCompositeField extends CompositeField {
 	 */
 	protected $hasRendered = false;
 
+	/**
+	 * @config
+	 * @var array
+	 */
+	private static $fieldset_tagnames = array(
+		'legend' => 'fieldset',
+		'nolegend' => 'div'
+	);
+
 	public function __construct(ListFilterBase $filter) {
 		$this->Filter = $filter;
 
@@ -60,6 +69,28 @@ class ListFilterCompositeField extends CompositeField {
 			}
 		}
 		parent::__construct($filterFields);
+	}
+
+	/**
+	 * Get legend for a <fieldset>
+	 *
+	 * @return string
+	 */
+	public function getLegend() {
+		return $this->getTitle();
+	}
+
+	/**
+	 * Get the tag name to use for the <fieldset> wrapper.
+	 *
+	 * @return string
+	 */
+	public function getFieldsetTagName() {
+		$fieldsetTagNames = $this->config()->fieldset_tagnames;
+		if ($this->getLegend()) {
+			return $fieldsetTagNames['legend'];
+		}
+		return $fieldsetTagNames['nolegend'];
 	}
 
 	/**

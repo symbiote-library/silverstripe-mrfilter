@@ -1,4 +1,8 @@
 en:
+  ListFilterShowingMessage:
+    RESULT_ZERO: 'Currently showing no results'
+    RESULT_SINGLE: 'Currently showing 1 result'
+    RESULT_RANGE: 'Currently showing {OffsetStart}-{OffsetEnd} of {TotalCount} results'
   ListFilterDateRange:
     START_DATE: 'Start Date'
     END_DATE: 'End Date'
