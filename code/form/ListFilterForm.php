@@ -376,9 +376,7 @@ class ListFilterForm extends Form {
 			$list = $this->getResultList();
 		}
 
-		$data = array(
-			'List' => $list,
-		);
+		$data = array();
 		if ($list instanceof PaginatedList) {
 			$start = 0;
 			$request = $list->getRequest();
