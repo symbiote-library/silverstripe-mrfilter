@@ -99,18 +99,20 @@ class ListFilterForm extends Form {
 				}
 			}
 		}
-		
-		// Execute list at this point, this allows 'finaliseFilter' to modify any form fields when
-		// necessary (ie. ListFilterSolrFacet)
-		$this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
 	}
 	
 	/**
 	 * Get the underlying result set this form has filtered down
+	 *
+	 * NOTE: This **MUST** be executed before rendering form fields so that finalizeFilter() on
+	 *	     Solr fields, can update the facets after the Solr query. (Solr query contains the facets)
 	 * 
 	 * @return PaginatedList
 	 */
 	public function getResultList() {
+		if ($this->resultList === null) {
+			$this->resultList = $this->record->PaginatedFilteredList($this->getVarData(), $this);
+		}
 		return $this->resultList;
 	}
 
@@ -371,7 +373,7 @@ class ListFilterForm extends Form {
 	 */
 	public function ShowingMessage(SS_List $list = null) {
 		if ($list === null) {
-			$list = $this->resultList;
+			$list = $this->getResultList();
 		}
 
 		$data = array(
@@ -426,7 +428,7 @@ class ListFilterForm extends Form {
 	 */
 	public function Listing(SS_List $list = null) {
 		if ($list === null) {
-			$list = $this->resultList;
+			$list = $this->getResultList();
 		}
 		$result = $this->getController()->customise(array(
 			'Results' => $list,
@@ -564,6 +566,10 @@ class ListFilterForm extends Form {
 			return;
 		}
 		$this->processFilterBackendData();
+		// Execute list at this point, this allows 'finaliseFilter' to modify any form fields when
+		// necessary (ie. ListFilterSolrFacet)
+		$this->getResultList();
+		
 		$this->onBeforeRender();
 		$this->extend('onBeforeRender', $this);
 
