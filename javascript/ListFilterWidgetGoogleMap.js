@@ -245,10 +245,15 @@
 		$mapElement.on('GoogleMapRunDrawInit', function(e, stopFormUpdate) {
 			var $mapElement = $(this);
 			var map = $mapElement.data('map');
-			if (map && $mapElement.data('has-loaded') && !$mapElement.data('has-drawn') && $mapElement.is(':visible')) {
-				google.maps.event.trigger(map, 'resize');
-
+			if (!map || !$mapElement.is(':visible') || !$mapElement.data('has-loaded')) {
+				return;
+			}
+			if (!$mapElement.data('has-drawn')) {
+				$mapElement.data('has-drawn', true);
+				
 				var center = map.getCenter();
+				google.maps.event.trigger(map, 'resize');
+				map.setCenter(center);
 				var lat = center.lat() | 0;
 				var lng = center.lng() | 0;
 				// NOTE: Trigger 'GoogleMapShowAllVisibleMarkers' in 'ListFilterWidgetInit' if you
@@ -256,14 +261,13 @@
 				if (lat === 0 && lng === 0) {
 					$mapElement.trigger('GoogleMapShowAllVisibleMarkers');
 				}
-
-				$mapElement.data('has-drawn', true);
 				$mapElement.trigger('GoogleMapDrawInit');
-				var form = $mapElement.data('form');
-				if (form) {
-					$(form).trigger('ListFilterFormUpdate');
-				}
 			}
+			var form = $mapElement.data('form');
+			if (form) {
+				$(form).trigger('ListFilterFormUpdate');
+			}
+			return true;
 		});
 
 		google.maps.event.addListener(map, 'bounds_changed', function(event) {
