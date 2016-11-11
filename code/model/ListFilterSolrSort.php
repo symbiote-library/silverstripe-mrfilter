@@ -57,13 +57,20 @@ class ListFilterSolrSort extends ListFilterBase
         $by = $this->SortFieldDefault;
         $dir = $this->SortDirectionDefault;
         
-        if (isset($data['SortBy'])) {
-            $opts = $this->getFieldOptions();
-            $by = isset($opts[$data['SortBy']]) ? $data['SortBy'] : $by;
-        }
         if (isset($data['SortDir'])) {
             $dir = $data['SortDir'] == 'ASC' || $data['SortDir'] == 'DESC' ? $data['SortDir'] : $dir;
         }
+        
+        if (isset($data['SortBy'])) {
+            $opts = $this->getFieldOptions();
+            $by = isset($opts[$data['SortBy']]) ? $data['SortBy'] : $by;
+            
+            if (strpos($by, ',')) {
+                $bits = explode(',', $by);
+                $by = implode(' ' . $dir . ', ', $bits);
+            }
+        }
+        
         $builder->sortBy($by, $dir);
 		return $sharedFilter;
 	}

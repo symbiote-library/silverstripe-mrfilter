@@ -12,8 +12,11 @@ if (class_exists('SolrSearchService') && class_exists('MultiValueField')) {
  */
 class ListFilterSolrFields extends ListFilterBase
 {
+    const BOOST_MAX = 10;
+    
     private static $db = array(
 		'SolrFilterFields'	=> 'MultiValueField',
+        'BoostMatchFields' => 'MultiValueField',
 	);
     
     public function getCMSFields()
@@ -23,6 +26,17 @@ class ListFilterSolrFields extends ListFilterBase
         $fields->replaceField('SolrFilterFields', 
             KeyValueField::create('SolrFilterFields')
                 ->setRightTitle('Solr fields to filter by; use $FieldName to take a property from the "current" page')
+        );
+        
+        $boostVals = array();
+        for ($i = 1; $i <= static::BOOST_MAX; $i++) {
+            $boostVals[$i] = $i;
+        }
+
+        $fields->replaceField(
+            'BoostMatchFields',
+            KeyValueField::create('BoostMatchFields', 'Boost fields with field/value matches', array(), $boostVals)
+                ->setRightTitle("Field_name:matchvalue on the left, boost number on the right")
         );
 
         return $fields;
@@ -46,6 +60,12 @@ class ListFilterSolrFields extends ListFilterBase
                     }
                 }
                 $builder->addFilter($field, $value);
+            }
+        }
+        
+        if ($boost = $this->BoostMatchFields->getValues()) {
+            if (count($boost)) {
+                $builder->boostFieldValues($boost);
             }
         }
 		
