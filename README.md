@@ -3,7 +3,7 @@ Mr Filter
 
 ![mr-filter](https://cloud.githubusercontent.com/assets/3859574/18301899/052886fe-7518-11e6-94ed-24f2758be60a.jpg)
 
-Warning: This module is currently undergoing breaking API changes, use at your own risk.
+**WARNING: This module is currently undergoing breaking API changes, use at your own risk.**
 
 Mr Filter is a filtering form that's configurable in the backend and able to be attached to a Page.
 
@@ -24,54 +24,8 @@ $('.js-view-map-button').click(function(e) {
 	$('.js-view-listing').addClass('is-hidden');
 	
 	// Fix Google Map display:none; bug
-	$('.js-listfilter-widget').each(function() {
-		var map = $(this).data('map');
-		if (!map) {
-			return;
-		}
-		// NOTE: Must store center before resize, otherwise the center will be
-		//		 the top-left of the map.
-		var center = map.getCenter();
-		google.maps.event.trigger(map, 'resize');
-		map.setCenter(center);
-	});
+	$('.js-listfilter-widget_googlemap').trigger('GoogleMapRunDrawInit');
 });
-```
-
-## Caching Example
-
-You can cache the map marker/features by getting a task to occassionally trigger 'updateCacheFile'.
-
-```
-<?php
-class ListFilterWidgetGoogleMapExtension extends Extension {
-	public function updateCacheFile() {
-		$features = $this->owner->getFeatureCollection();
-		$record = $this->owner->getRecord();
-		$name = 'events-markers-'.$record->ID.'.json';
-		$featuresAsJSON = json_encode($features);
-
-		$cache = singleton('ListFilterCacheFile');
-		$file = $cache->save($featuresAsJSON, 'events-markers-'.$record->ID.'.json');
-		return $file;
-	}
-
-	public function getCacheFile() {
-		$record = $this->owner->getRecord();
-
-		$cache = singleton('ListFilterCacheFile');
-		$file = $cache->loadFile('events-markers-'.$record->ID.'.json');
-		return $file;
-	}
-
-	public function updateDataAttributes(&$parameters) {
-		// If cache *.json file exists, use that instead.
-		$cacheFile = $this->owner->getCacheFile();
-		if ($cacheFile && $cacheFile->exists()) {
-			$parameters['features-url'] = $cacheFile->getURL().'?t='.strtotime($cacheFile->LastEdited);
-		}
-	}
-}
 ```
 
 ## Requirements

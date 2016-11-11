@@ -1,7 +1,7 @@
 (function($){
 	"use strict";
 
-	$(document).on('ListFilterWidgetReinit', initMaps);
+	$(document).on('GoogleMapRunInit', initMaps);
 
 	var $mapWidgets = $('.js-listfilter-widget_googlemap');
 	if (!$mapWidgets.length) {
@@ -80,8 +80,6 @@
 	function loadFeaturesForMap(mapElement) {
 		var $mapElement = $(mapElement);
 		if (!$mapElement.data('map') || $mapElement.data('listfilter-records')) {
-			// Only add features if the "google.maps.Map" object exists
-			// and if no features exist yet.
 			return;
 		}
 		var featureData = $mapElement.data('features');
@@ -218,10 +216,10 @@
 			infoWindow.open(map);
 		});
 
-		$mapElement.on('GoogleMapShowAllVisibleMarkers', function(e, callback) {
+		$mapElement.on('GoogleMapShowAllVisibleMarkers', function(e) {
 			var $mapElement = $(this);
 			var records = $mapElement.data('listfilter-records');
-			if (records.length === 0) {
+			if (records.length === 0 || !$mapElement.is(':visible')) {
 				return;
 			}
 			var bounds = new google.maps.LatLngBounds();
@@ -235,6 +233,8 @@
 			}
 			if (visibleMarkerCount > 0) {
 				var map = $mapElement.data('map');
+				var adjustZoomCounter = $mapElement.data('adjust-zoom') || 0;
+				$mapElement.data('adjust-zoom', adjustZoomCounter + 1);
 				map.fitBounds(bounds);
 				map.setCenter(bounds.getCenter());
 				return true;
@@ -242,29 +242,51 @@
 			return false;
 		});
 
-		google.maps.event.addListenerOnce(map, 'tilesloaded', function (e) {
-			var map = this;
-			var $mapElement = $(map.getDiv());
-			// After geoJSON has loaded, if lat/lng hasnt been set on the map
-			// make the center based on all the markers/points.
-			var center = map.getCenter();
-			var lat = Math.floor(center.lat());
-			var lng = Math.floor(center.lng());
-			if (lat === 0 && lng === 0) {
-				$mapElement.trigger('GoogleMapShowAllVisibleMarkers');
+		$mapElement.on('GoogleMapRunDrawInit', function(e, stopFormUpdate) {
+			var $mapElement = $(this);
+			var map = $mapElement.data('map');
+			if (map && $mapElement.data('has-loaded') && !$mapElement.data('has-drawn') && $mapElement.is(':visible')) {
+				google.maps.event.trigger(map, 'resize');
+
+				var center = map.getCenter();
+				var lat = center.lat() | 0;
+				var lng = center.lng() | 0;
+				// NOTE: Trigger 'GoogleMapShowAllVisibleMarkers' in 'ListFilterWidgetInit' if you
+				//	     want to set an explicit lat/lng -and- show all visible markers
+				if (lat === 0 && lng === 0) {
+					$mapElement.trigger('GoogleMapShowAllVisibleMarkers');
+				}
+
+				$mapElement.data('has-drawn', true);
+				$mapElement.trigger('GoogleMapDrawInit');
+				var form = $mapElement.data('form');
+				if (form) {
+					$(form).trigger('ListFilterFormUpdate');
+				}
 			}
 		});
 
-		google.maps.event.addListenerOnce(map, 'bounds_changed', function(event) {
+		google.maps.event.addListener(map, 'bounds_changed', function(event) {
 			// Ensure the map fits when fitting the bounds based on markers
 			// (map.fitBounds is async, so we need to set the zoom once its finished)
-			this.setZoom(this.getZoom() - 1);
-			if (this.getZoom() > 15) {
-				this.setZoom(15);
+			var $mapElement = $(map.getDiv());
+			var adjustZoomCounter = $mapElement.data('adjust-zoom');
+			if (adjustZoomCounter) {
+				this.setZoom(this.getZoom() - 1);
+				if (this.getZoom() > 15) {
+					this.setZoom(15);
+				}
+				if (adjustZoomCounter > 0) {
+					--adjustZoomCounter;
+				}
+				$mapElement.data('adjust-zoom', adjustZoomCounter);
 			}
 		});
 
-		$mapElement.trigger('ListFilterWidgetInit');
+		$mapElement.data('has-loaded', true);
+		if ($mapElement.is(':visible')) {
+			$mapElement.trigger('GoogleMapRunDrawInit');
+		}
 		return true;
 	}
 

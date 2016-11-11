@@ -242,7 +242,6 @@
 		var $form = $(this);
 		var $widget = $form.data('widget');
 		if (typeof $widget === 'undefined' || !$widget || !$widget.length || !$widget.is(':visible')) {
-			// debugLog('js-listfilter-form::ListFilterFormUpdate: Missing widget element, ie. element that matches: .js-listfilter[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
 			return;
 		}
 		var allRecords = $widget.data('listfilter-records');
