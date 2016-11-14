@@ -35,8 +35,9 @@ class ListFilterSolrSort extends ListFilterBase
         $fields = $this->SortFieldOptions->getValues();
         if (!$fields) {
             $fields = array();
+			$fields['score'] = 'Relevance';
         }
-        $fields['score'] = 'Relevance';
+        
         return $fields;
     }
     
