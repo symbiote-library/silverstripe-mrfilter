@@ -36,7 +36,7 @@ class ListFilterSharedSolr extends ListFilterShared {
 		 */
 		$solr = singleton('SolrSearchService');
 		$builder = $solr->getQueryBuilder();
-		return $this->builder = $builder;
+		return $this->builder = $builder->baseQuery('*');
 	}
 
 	/**
