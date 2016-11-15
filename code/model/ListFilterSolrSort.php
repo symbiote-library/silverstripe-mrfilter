@@ -65,13 +65,13 @@ class ListFilterSolrSort extends ListFilterBase
         if (isset($data['SortBy'])) {
             $opts = $this->getFieldOptions();
             $by = isset($opts[$data['SortBy']]) ? $data['SortBy'] : $by;
-            
-            if (strpos($by, ',')) {
-                $bits = explode(',', $by);
-                $by = implode(' ' . $dir . ', ', $bits);
-            }
         }
-        
+
+        if (strpos($by, ',')) {
+            $bits = explode(',', $by);
+            $by = implode(' ' . $dir . ', ', $bits);
+        }
+
         $builder->sortBy($by, $dir);
 		return $sharedFilter;
 	}
