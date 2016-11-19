@@ -59,12 +59,15 @@ class ListFilterForm extends Form {
 			$pageOrDataRecord = $this->controller->data();
 			if ($pageOrDataRecord && $pageOrDataRecord->hasExtension('ListFilterSetExtension')) {
 				$this->record = $pageOrDataRecord->ListFilterSet();
+				if (!$this->record || !$this->record->exists()) {
+					throw new LogicException('No ListFilterSet configured on Page #'.$pageOrDataRecord->ID);
+				}
 			} else {
-				throw new Exception('Missing "ListFilterSetExtension" on '.$page->class. ' or failed to provide a ListFilterSet as the 3rd parameter.');
+				throw new LogicException('Missing "ListFilterSetExtension" on '.$page->class. ' or failed to provide a ListFilterSet as the 3rd parameter.');
 			}
 		}
 		if (!$this->record) {
-			throw new Exception('Missing "ListFilterSet". Unable to determine from controller and it was not passed as 3rd parameter.');
+			throw new LogicException('Missing "ListFilterSet". Unable to determine from controller and it was not passed as 3rd parameter.');
 		}
 		$this->record->setForm($this);
 
@@ -72,6 +75,9 @@ class ListFilterForm extends Form {
 
 		$fields = $this->getFormFieldsAll();
 		$actions = $this->getFormActionsAll();
+		if (!$fields || $fields->count() == 0) {
+			throw new LogicException('Missing fields on ListFilterForm. Do you have Filter Groups configured on List Filter Set #'.$this->record->ID.'?');
+		}
 		parent::__construct($controller, $name, $fields, $actions, ListFilterFormValidator::create());
 		$this->disableSecurityToken();
 
