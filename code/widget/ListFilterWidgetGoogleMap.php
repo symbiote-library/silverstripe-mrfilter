@@ -357,8 +357,11 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 					'options' => array(
 						// For more options, see: https://web.archive.org/web/20160829003318/https://googlemaps.github.io/js-marker-clusterer/docs/reference.html
 						'imagePath' => Director::absoluteBaseURL().'/'.ListFilterUtility::MODULE_DIR.'/images/thirdparty/markerclusterer/m',
-						//'gridSize' => 50, 
+						//'gridSize' => 60, 
 						//'maxZoom' => 12,
+						//'minimumClusterSize' => 2,
+						//'zoomOnClick' => true,
+						//'averageCenter' => false,
 					),
 				),
 			),

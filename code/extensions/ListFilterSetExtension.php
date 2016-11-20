@@ -14,7 +14,14 @@ class ListFilterSetExtension extends Extension {
 		$filterSetField->setEmptyString('(Select a filter set)');
 		$modelAdmin = singleton('ListFilterAdmin');
 		if ($modelAdmin->canView()) {
-			$filterSetField->setRightTitle('Click <a href="'.singleton('ListFilterAdmin')->Link().'">here</a> to add or edit List Filter Sets.');
+			$listFilterSet = $this->owner->ListFilterSet();
+			$editMessage = 'Manage: ';
+			if ($listFilterSet && $listFilterSet->exists()) {
+				$editMessage .= '<a href="'.singleton('ListFilterAdmin')->Link().'">View all</a> | <a href="'.$listFilterSet->CMSEditLink().'">Edit this</a>';
+			} else {
+				$editMessage .= '<a href="'.singleton('ListFilterAdmin')->Link().'">View all</a>';
+			}
+			$filterSetField->setRightTitle($editMessage);
 		}
 		if ($fields->dataFieldByName('MenuTitle')) {
 			$fields->insertAfter($filterSetField, 'MenuTitle');

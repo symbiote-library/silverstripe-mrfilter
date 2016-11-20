@@ -48,20 +48,32 @@ class ListFilterTags extends ListFilterBase {
 		if ($tags instanceof SS_List) {
 			$tags = $tags->map('ID', 'Title');
 		}
-		$fields->push($field = CheckboxSetField::create('Tags', $this->Title, $tags));
+		$fields->push($field = CheckboxSetField::create('Tags', '', $tags));
 		return $fields;
 	}
 
 	/**
-	 * Return tag IDs used by record
+	 * Return tag ID(s) used by record
 	 *
 	 * @return array
 	 */
 	public function getFilterData(DataObject $record) {
 		$relationName = $this->getComponentRelationName();
-		$tags = $record->$relationName();
+		$tagsOrHasOne = $record->$relationName();
+		$tagIDs = array();
+		if ($tagsOrHasOne instanceof DataList || $tagsOrHasOne instanceof ArrayList) {
+			// Handle has_many / many_many relationship
+			$tagIDs = $tagsOrHasOne->map('ID', 'ID');
+			if ($tagIDs instanceof SS_Map) {
+				$tagIDs = $tagIDs->toArray();
+			}
+			$tagIDs = array_values($tagIDs);
+		} else if ($tagsOrHasOne && $tagsOrHasOne->exists()) {
+			// Handle has_one relationship
+			$tagIDs[] = $tagsOrHasOne->ID;
+		}
 		return array(
-			'value' => array_values($tags->map('ID', 'ID')->toArray())
+			'value' => $tagIDs
 		);
 	}
 

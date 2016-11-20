@@ -36,6 +36,23 @@ class ListFilterUtility {
 	/**
 	 * @return string
 	 */
+	public static function get_relation_type($class, $relationName) {
+		$config = $class::config();
+		if (isset($config->has_one[$relationName])) {
+			return 'has_one';
+		}
+		if (isset($config->has_many[$relationName])) {
+			return 'has_many';
+		}
+		if (isset($config->many_many[$relationName])) {
+			return 'many_many';
+		}
+		return null;
+	}
+
+	/**
+	 * @return string
+	 */
 	public static function get_component_names_using_class($class, $relationClass) {
 		$result = array();
 		$manyMany = $class::config()->many_many;
@@ -57,21 +74,34 @@ class ListFilterUtility {
 			$ids[$k] = (int)$v;
 		}
 
-		if ($list instanceof ArrayList) {
-			$result = array();
-			foreach ($list as $record) {
-				$subList = $record->$relationName();
-				if ($subList && $subList->find('ID', $ids)) {
-					$result[] = $record;
-				}
-			}
-			$list = new ArrayList($result);
-		} else {
-			$idsSQL = "(".implode(',', $ids).")";
+		$class = $list->dataClass();
+		$relationType = self::get_relation_type($class, $relationName);
+		switch ($relationType) {
+			case 'has_one':
+				$list = $list->filter(array($relationName.'ID' => $ids));
+			break;
 
-			$class = $list->dataClass();
-			list($parentClass, $componentClass, $myIDColumnName, $relationIDColumnName, $manyManyTable) = singleton($class)->manyManyComponent($relationName);
-			$list = $list->innerJoin($manyManyTable, "\"{$myIDColumnName}\" = \"$parentClass\".\"ID\" AND \"{$relationIDColumnName}\" IN {$idsSQL}");
+			case 'many_many':
+				if ($list instanceof ArrayList) {
+					$result = array();
+					foreach ($list as $record) {
+						$subList = $record->$relationName();
+						if ($subList && $subList->find('ID', $ids)) {
+							$result[] = $record;
+						}
+					}
+					$list = new ArrayList($result);
+				} else {
+					$idsSQL = "(".implode(',', $ids).")";
+
+					list($parentClass, $componentClass, $myIDColumnName, $relationIDColumnName, $manyManyTable) = singleton($class)->manyManyComponent($relationName);
+					$list = $list->innerJoin($manyManyTable, "\"{$myIDColumnName}\" = \"$parentClass\".\"ID\" AND \"{$relationIDColumnName}\" IN {$idsSQL}");
+				}
+			break;
+
+			default:
+				throw new Exception('Relation type "'.$relationType.'" is not supported by '.__CLASS__.'::'.__FUNCTION__.'()');
+			break;
 		}
 		return $list;
 	}

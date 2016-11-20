@@ -395,6 +395,15 @@ class ListFilterSet extends DataObject {
 	}
 
 	/**
+	 * Generates a link to edit this page in the CMS.
+	 *
+	 * @return string
+	 */
+	public function CMSEditLink() {
+		return Controller::join_links(Controller::join_links(singleton('ListFilterAdmin')->Link(), 'ListFilterSet/EditForm/field/ListFilterSet/item/', $this->ID, '/edit'));
+	}
+
+	/**
 	 * Apply filters to any given list based on user-input
 	 */
 	public function applyFilterToList(SS_List $list, array $data, $caller) {
