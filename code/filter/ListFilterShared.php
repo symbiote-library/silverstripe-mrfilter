@@ -2,7 +2,7 @@
 
 /**
  * A special kind of filter that can be shared and manipulated across
- * multiple MapWidgetFilterGroup objects.
+ * multiple list filter objects.
  *
  * The use case is that for example, you might want to make multiple AND queries against
  * Solr effeciently, so to put all Solr-related queries into one query, the Solr-based filter
