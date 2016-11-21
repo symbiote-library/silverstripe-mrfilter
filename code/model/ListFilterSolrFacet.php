@@ -52,7 +52,7 @@ class ListFilterSolrFacet extends ListFilterBase {
 	 */
 	public function applyFilter(SS_List $list, array $data) {
 		$sharedFilter = $this->SharedFilter('ListFilterSharedSolr');
-		$connector = $this->FilterMethod == 'and' ? 'AND' : 'OR';
+		$connector = ($this->FilterMethod === 'and') ? 'AND' : 'OR';
 		
 		$facetField = $this->FacetOn;
 		$fieldFilterPrefix = '';
@@ -89,14 +89,6 @@ class ListFilterSolrFacet extends ListFilterBase {
 		
 		return $sharedFilter;
 	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	// todo(Jake): Copy behaviour from ListFilterSolrKeyword
-	/*public function getFilterBackendData(SS_List $list, array $data) {
-
-	}*/
 	
 	/**
 	 * {@inheritdoc}
@@ -135,14 +127,6 @@ class ListFilterSolrFacet extends ListFilterBase {
 	public function getFilterBackendData(SS_List $list, array $data) {
 		return null;
 	}
-
-	/**
-	 * {@inheritdoc}
-	 */
-	// todo(Jake): Copy behaviour from ListFilterSolrKeyword
-	/*public function getJavascriptCallback() {
-		return 'ListFilterGroupIDs';
-	}*/
 }
 
 }

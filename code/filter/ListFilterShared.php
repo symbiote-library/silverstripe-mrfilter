@@ -20,12 +20,19 @@ abstract class ListFilterShared extends Object {
 	/** 
 	 * @var ListFilterSet
 	 */
-	protected $record;
+	protected $listFilterSet;
 
-	public function __construct(ListFilterSet $record) {
+	public function __construct(ListFilterSet $listFilterSet) {
 		++self::$_uid_counter;
 		$this->_uid = self::$_uid_counter;
-		$this->record = $record;
+		$this->listFilterSet = $listFilterSet;
+	}
+
+	/**
+	 * @return ListFilterSet
+	 */
+	public function ListFilterSet() {
+		return $this->listFilterSet;
 	}
 
 	/**

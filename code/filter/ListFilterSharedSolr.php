@@ -55,6 +55,18 @@ class ListFilterSharedSolr extends ListFilterShared {
 			}
 			$builder->addFilter('(ClassNameHierarchy_ms', implode(' OR (ClassNameHierarchy_ms:', $hierarchyClasses));
 		}
+		// Support ListFilterSet::SpecialList type 'Children'
+		// ie. Only query children of this parent ID
+		$listFilterSet = $this->ListFilterSet();
+		if ($listFilterSet->ListClassName === '(Children)') {
+			$controller = $listFilterSet->getContentController();
+			if ($controller) {
+				$dataRecord = $controller->data();
+				if ($dataRecord && $dataRecord->exists()) {
+					$builder->addFilter('ParentsHierarchy_ms', $dataRecord->ID);
+				}
+			}
+		}
 		$this->invokeWithExtensions('updateQueryBuilder', $builder);
 		/**
 		 * @var $solr SolrSearchService

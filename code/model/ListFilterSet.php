@@ -272,7 +272,7 @@ class ListFilterSet extends DataObject {
 	protected $_cache_special_list = null;
 	public function SpecialList() {
 		if ($this->_cache_special_list !== null) {
-			return $this->_cache_special_list;
+			return clone $this->_cache_special_list;
 		}
 		$listType = $this->getField('ListClassName');
 		if (!$listType || $listType[0] !== '(') {
@@ -323,7 +323,8 @@ class ListFilterSet extends DataObject {
 				throw new Exception('Invalid special list type "'.$listType.'".');
 			break;
 		}
-		return $this->_cache_special_list = $list;
+		$this->_cache_special_list = $list;
+		return clone $this->_cache_special_list;
 	}
 
 	/**
