@@ -195,7 +195,11 @@
 		var $filterGroupHolder = $(this).parents('.js-listfilter-filter').first();
 		var $form = $(this.form);
 		if (!$filterGroupHolder.length) {
-			debugLog("Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified incorrectly.\n\nThis is also known to occur when CompositeField_holder.ss is put into an /Includes/ folder, rather than /forms/. Old versions of Unclecheese's Display Logic module will do this and break this module.");
+			debugLog("Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified"
+			+ " incorrectly.\n\nOmit the 'name' attribute or add class '.js-listfilter-ignore' if its unrelated to"
+			+ " the ListFilterForm.\n\nThis is also known to occur when CompositeField_holder.ss is put into an"
+			+ " /Includes/ folder, rather than /forms/. Old versions of Unclecheese's Display Logic module will do this"
+			+ " and break this module.");
 			return;
 		}
 		$form.trigger('ListFilterFormUpdate');
@@ -215,7 +219,7 @@
 			// Setup callbacks
 			for (var i = 0; i < this.elements.length; ++i) {
 				var it = this.elements[i];
-				if (it.tagName === 'FIELDSET') {
+				if (it.tagName === 'FIELDSET' || $(it).hasClass('js-listfilter-ignore') || !($(it).attr('name'))) {
 					continue;
 				}
 				$(it).change(FormFieldChange);
