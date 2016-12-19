@@ -302,18 +302,41 @@ class ListFilterSet extends DataObject {
 
 					$baseClass = 'SiteTree';
 
-					// The children list (Hierarchy::stageChildren) uses 'SiteTree' as the 'dataClass', but we might want to access data that's specific
-					// to a BlogPost or CalendarEvent, so if the allowed_children only allow one specific type, switch the 
+					// The children list (Hierarchy::stageChildren) uses 'SiteTree' as the 'dataClass'
+					// but we might want to access data that's specific to a BlogPost or CalendarEvent
+					// ...so if the allowed_children only allow one specific type, switch the 
 					// $baseClass/dataClass() to that.
 					$allowedChildren = $dataRecord->stat('allowed_children');
+					$allowedChildren = array_flip($allowedChildren);
+					foreach ($allowedChildren as $class => $_) {
+						if ($class && isset($class[0]) && $class[0] === '*') {
+							// If there is two records:
+							// - *CalendarEvent
+							// - CalendarEvent
+							//
+							// Remove the non * one.
+							//
+							$class = ltrim($class, '*');
+							unset($allowedChildren[$class]);
+						}
+					}
+					$allowedChildren = array_keys($allowedChildren);
 					if (count($allowedChildren) == 1) {
 						$baseClass = reset($allowedChildren);
 					}
+					$excludeSubclasses = false;
+					if ($baseClass && isset($baseClass[0]) && $baseClass[0] === '*') {
+						$baseClass = ltrim($baseClass, '*');
+						$excludeSubclasses = true;
+					}
 
-					// Manual recreation of: $dataRecord->stageChildren(true);
+					// Manual recreation of: Hierarchy::stageChildren(true);
 					$list = $baseClass::get()
 								->filter('ParentID', (int)$dataRecord->ID)
 								->exclude('ID', (int)$dataRecord->ID);
+					if ($excludeSubclasses) {
+						$list = $list->filter(array('ClassName' => $baseClass));
+					}
 					$showAll = true;
 					$dataRecord->invokeWithExtensions('augmentStageChildren', $list, $showAll);
 				}

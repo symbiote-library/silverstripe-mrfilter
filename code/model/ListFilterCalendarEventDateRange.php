@@ -76,7 +76,11 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 		$start = isset($data['StartDate']) ? $data['StartDate'] : null;
 		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
 
-		$calendarDateTimeList = CalendarDateTime::get();
+		// Get `CalendarDateTime` class used. Defaults to `CalendarDateTime`.
+		$class = $list->dataClass();
+		$datetimeClass = $class::config()->datetime_class;
+
+		$calendarDateTimeList = $datetimeClass::get();
 		$calendarDateTimeList = $this->applyDateRange($calendarDateTimeList, $start, $end);
 		$calendarDateTimeList = $calendarDateTimeList->sort(array(
 			'StartDate' => 'ASC', 
