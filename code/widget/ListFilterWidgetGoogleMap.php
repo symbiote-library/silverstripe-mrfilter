@@ -173,10 +173,23 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				$properties = &$feature['properties'];
 				$properties['ID'] = $record->ID;
 				$properties['Name'] = $record->Title;
-				$properties['IconURL'] = '';
+				$properties['Icon'] = array(
+					// 'url' => '..'
+					// 'scaledSize' => array(
+					//		'width' => 32,
+					//		'height' => 32,
+					//) 
+				);
 
 				// Use "updateGeoJSONFeatureArray" from GeoJSON module
 				$record->invokeWithExtensions('updateGeoJSONFeatureArray', $feature, $this);
+
+				// 'IconURL' backwards compatibility
+				if (isset($properties['IconURL'])) {
+					$properties['Icon'] = array(
+						'url' => $properties['IconURL'],
+					);
+				}
 			}
 			if ($filterSetRecord && !isset($properties['FilterGroups'])) {
 				// Add frontend widget filtering information
@@ -373,7 +386,13 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 				)
 			),
 			'marker-parameters'	=> array(
-				//'icon' => 'themes/mythemefolder/images/maps-icons/default.png'
+				/*'icon' => array(
+					'url' => 'themes/mythemefolder/images/maps-icons/default.png',
+					'scaledSize' => array(
+						'width'  => 32, 
+						'height' => 32
+					)
+				),*/
 			),
 			'init-parameters'	=> array(
 				'libraries' => 'places',

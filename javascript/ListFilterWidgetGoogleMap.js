@@ -137,9 +137,13 @@
 				record.ID = recordProperties.ID;
 				record.Properties = recordProperties;
 				record.Marker = marker;
-				if (recordProperties.IconURL !== '') {
-					marker.setIcon(recordProperties.IconURL);
+
+				if (typeof(recordProperties.Icon) !== 'undefined' &&
+					!$.isEmptyObject(recordProperties.Icon)) {
+					var icon = recordProperties.Icon;
+					marker.setIcon(icon);
 				}
+				
 				// Add info for live filtering
 				if (typeof recordProperties.FilterGroups !== 'undefined') {
 					record.FilterGroups = recordProperties.FilterGroups;
