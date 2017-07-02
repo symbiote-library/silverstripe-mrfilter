@@ -15,7 +15,7 @@ before_script:
  - phpenv rehash
  - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
  - "if [ \"$PHPSTAN\" = \"\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss; fi"
- - "if [ \"$PHPSTAN\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silbinarywolf/silverstripe-phpstan; fi"
+ - "if [ \"$PHPSTAN\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silbinarywolf/silverstripe-phpstan --require phpstan/phpstan-shim:0.7; fi"
  - cd ~/builds/ss
 
 script:
