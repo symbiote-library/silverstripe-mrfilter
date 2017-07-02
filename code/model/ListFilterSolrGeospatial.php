@@ -48,7 +48,7 @@ class ListFilterSolrGeospatial extends ListFilterBase {
 	public function getCMSFields() {
 		$self = &$this;
 		$self->beforeUpdateCMSFields(function($fields) use ($self) {
-			$fields->addFieldToTab('Root.Main', TextField::create('Radius', 'Radius (in kilometres)')->setRightTItle('0 = Use default radius ('.$self->config()->default_radius.'km)'));
+			$fields->addFieldToTab('Root.Main', TextField::create('Radius', 'Radius (in kilometres)')->setRightTitle('0 = Use default radius ('.$self->config()->default_radius.'km)'));
 		});
 		$fields = parent::getCMSFields();
 		return $fields;

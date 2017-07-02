@@ -221,7 +221,7 @@ class ListFilterSet extends DataObject {
 	}
 
 	/**
-	 * @return $this
+	 * @return ListFilterForm
 	 */
 	public function getForm() {
 		return $this->form;

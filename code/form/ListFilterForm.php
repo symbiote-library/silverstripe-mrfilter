@@ -47,6 +47,11 @@ class ListFilterForm extends Form {
 	protected $processedOnBeforeRender = false;
 
 	/**
+	 * @var boolean
+	 */
+	protected $ajax_enabled = false;
+
+	/**
 	 * @var string
 	 */
 	protected $formMethod = 'GET';
@@ -63,7 +68,7 @@ class ListFilterForm extends Form {
 					throw new LogicException('No ListFilterSet configured on Page #'.$pageOrDataRecord->ID);
 				}
 			} else {
-				throw new LogicException('Missing "ListFilterSetExtension" on '.$page->class. ' or failed to provide a ListFilterSet as the 3rd parameter.');
+				throw new LogicException('Missing "ListFilterSetExtension" on '.$pageOrDataRecord->class. ' or failed to provide a ListFilterSet as the 3rd parameter.');
 			}
 		}
 		if (!$this->record) {
@@ -356,7 +361,7 @@ class ListFilterForm extends Form {
 		if ($backendFilterGroupData && is_array($backendFilterGroupData)) {
 			$this->setAttribute('data-listfilter-backend', json_encode($backendFilterGroupData));
 		}
-		$this->processedFilterBackendData = true;
+		//$this->processedFilterBackendData = true;
 	}
 
 	/**

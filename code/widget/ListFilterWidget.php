@@ -100,7 +100,7 @@ abstract class ListFilterWidget extends Controller {
 	}
 
 	/**
-	 * @return SS_List
+	 * @return DataList|ArrayList
 	 */
 	public function FilteredList($data = array()) {
 		$filterSetRecord = $this->getListFilterSet();

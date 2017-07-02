@@ -72,6 +72,13 @@ class ListFilterCompositeField extends CompositeField {
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getTitle() {
+		return $this->title;
+	}
+
+	/**
 	 * Get legend for a <fieldset>
 	 *
 	 * @return string

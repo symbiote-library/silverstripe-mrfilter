@@ -57,9 +57,11 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	public function getFilterData(DataObject $record) {
 		$startDate = array();
 		$endDate = array();
-		foreach ($record->DateTimes() as $dateTime) {
-			$startDate[] = $dateTime->StartDate;
-			$endDate[] = $dateTime->EndDate;
+		if ($record->hasMethod('DateTimes')) {
+			foreach ($record->DateTimes() as $dateTime) {
+				$startDate[] = $dateTime->StartDate;
+				$endDate[] = $dateTime->EndDate;
+			}
 		}
 		return array(
 			'value' => array(

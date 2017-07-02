@@ -30,7 +30,7 @@ class ListFilterTaxonomyTerms extends ListFilterTags
 	 */
 	public function getCMSFields() {
 		$self = &$this;
-		$self->beforeUpdateCMSFields(function($fields) use ($self) {
+		$self->beforeUpdateCMSFields(function($fields) {
 			$fields->removeByName(array('Terms', 'TermParents'));
 			$fields->addFieldToTab('Root.Main', TreeMultiselectField::create('Terms', 'Terms', 'TaxonomyTerm', 'ID', 'Name')
 													->setRightTitle('List the selected terms out.'));

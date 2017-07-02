@@ -23,6 +23,8 @@ abstract class ListFilterShared extends Object {
 	protected $listFilterSet;
 
 	public function __construct(ListFilterSet $listFilterSet) {
+		parent::__construct();
+		
 		++self::$_uid_counter;
 		$this->_uid = self::$_uid_counter;
 		$this->listFilterSet = $listFilterSet;

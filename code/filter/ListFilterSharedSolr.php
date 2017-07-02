@@ -1,8 +1,6 @@
 <?php
 
-if (!class_exists('SolrSearchService')) {
-	return;
-}
+if (class_exists('SolrSearchService')) {
 
 class ListFilterSharedSolr extends ListFilterShared {
 
@@ -113,4 +111,6 @@ class ListFilterSharedSolr extends ListFilterShared {
 	public function getResultSet() {
 		return $this->resultSet;
 	}
+}
+
 }
