@@ -19,4 +19,4 @@ before_script:
  - cd ~/builds/ss
 
 script:
- - "if [ \"$PHPSTAN\" = \"1\" ]; then php vendor/phpstan/phpstan-shim/phpstan.phar analyze mrfilter -c "mrfilter/phpstan.neon" -a "phpstan/prebootstrap.php"; fi"
+ - "if [ \"$PHPSTAN\" = \"1\" ]; then php vendor/phpstan/phpstan-shim/phpstan.phar analyze mrfilter -c mrfilter/phpstan.neon -a phpstan/prebootstrap.php; fi"
