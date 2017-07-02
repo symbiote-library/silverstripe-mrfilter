@@ -1,0 +1,22 @@
+language: php
+php:
+ - 5.3
+
+env:
+  matrix:
+   - DB=MYSQL CORE_RELEASE=3.6
+
+matrix:
+  include:
+    - php: 7.1
+      env: DB=MYSQL CORE_RELEASE=3.6 PHPSTAN=1
+
+before_script:
+ - phpenv rehash
+ - git clone git://github.com/silverstripe-labs/silverstripe-travis-support.git ~/travis-support
+ - "if [ \"$PHPSTAN\" = \"\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss; fi"
+ - "if [ \"$PHPSTAN\" = \"1\" ]; then php ~/travis-support/travis_setup.php --source `pwd` --target ~/builds/ss --require silverstripe/silverstripe-phpstan; fi"
+ - cd ~/builds/ss
+
+script:
+ - "if [ \"$PHPSTAN\" = \"1\" ]; then php vendor/phpstan/phpstan-shim/phpstan.phar analyze mrfilter -c "mrfilter/phpstan.neon" -a "phpstan/prebootstrap.php"; fi"
