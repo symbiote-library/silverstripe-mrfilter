@@ -358,6 +358,7 @@ class ListFilterSet extends DataObject {
 	public function FilteredList(array $data, $caller) {
 		$list = $this->BaseList();
 		$list = $this->applyFilterToList($list, $data, $caller);
+		$this->extend('updateFilteredList', $list);
 		return $list;
 	}
 
