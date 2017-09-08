@@ -93,8 +93,9 @@ class ListFilterUtility {
 					$list = new ArrayList($result);
 				} else {
 					$idsSQL = "(".implode(',', $ids).")";
-
-					list($parentClass, $componentClass, $myIDColumnName, $relationIDColumnName, $manyManyTable) = singleton($class)->manyManyComponent($relationName);
+					$classObj = singleton($class);
+					$manyManyInfo = $classObj->hasMethod('manyManyComponent') ? 'manyManyComponent' : 'many_many';
+					list($parentClass, $componentClass, $myIDColumnName, $relationIDColumnName, $manyManyTable) = $classObj->$manyManyInfo($relationName);
 					$list = $list->innerJoin($manyManyTable, "\"{$myIDColumnName}\" = \"$parentClass\".\"ID\" AND \"{$relationIDColumnName}\" IN {$idsSQL}");
 				}
 			break;

@@ -393,7 +393,7 @@ class ListFilterForm extends Form {
 				}
 			}
 
-			$data['TotalCount'] = $list->TotalItems();
+			$data['TotalCount'] = $list->getTotalItems();
 			if ($start < $data['TotalCount']) {
 				$data['OffsetStart'] = $start + 1;
 				$data['ThisPage'] = $list->CurrentPage();
