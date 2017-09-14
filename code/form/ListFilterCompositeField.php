@@ -77,7 +77,7 @@ class ListFilterCompositeField extends CompositeField {
 	 * @return string
 	 */
 	public function getLegend() {
-		return $this->getTitle();
+		return $this->Title();
 	}
 
 	/**

@@ -385,7 +385,7 @@ class ListFilterForm extends Form {
 		$data = array();
 		if ($list instanceof PaginatedList) {
 			$start = 0;
-			$request = $list->getRequest();
+			$request = $list->hasMethod('getRequest') ? $list->getRequest() : $this->controller->getRequest();
 			if ($request) {
 				$getVarName = $list->getPaginationGetVar();
 				if($request && isset($request[$getVarName]) && $request[$getVarName] > 0) {
