@@ -88,8 +88,9 @@ class ListFilterDateRange extends ListFilterBase {
 	 * @return SS_List
 	 */
 	public function applyDateRange(SS_List $list, $start, $end) {
+		// get both date fields, or a single field
 		$startDateField = $this->StartDateField;
-		$endDateField = $this->EndDateField;
+		$endDateField = $this->EndDateField ?: $startDateField;
 
 		// Use DateField to convert from the date format to 'yyyy-mm-dd' for
 		// database use.
