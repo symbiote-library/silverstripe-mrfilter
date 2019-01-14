@@ -4,6 +4,7 @@ class ListFilterDateRange extends ListFilterBase {
 	private static $db = array(
 		'StartDateField' => 'Varchar(60)',
 		'EndDateField'   => 'Varchar(60)',
+		'DefaultDaysToDisplay' => 'Int'
 	);
 
 	private static $defaults = array(
@@ -30,8 +31,10 @@ class ListFilterDateRange extends ListFilterBase {
 				$classDbFields = ArrayLib::valuekey($classDbFields);
 				$dbFields = array_merge($dbFields, $classDbFields);
 			}
-			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('StartDateField', 'Start Date Field', $dbFields));
-			$fields->addFieldToTab('Root.Main', $field = DropdownField::create('EndDateField', 'End Date Field', $dbFields));
+			$fields->addFieldToTab('Root.Main', DropdownField::create('StartDateField', 'Start Date Field', $dbFields));
+			$fields->addFieldToTab('Root.Main', DropdownField::create('EndDateField', 'End Date Field', $dbFields));
+			$fields->addFieldToTab('Root.Main', NumericField::create('DefaultDaysToDisplay')
+		);
 		});
 		$fields = parent::getCMSFields();
 		return $fields;
@@ -43,7 +46,7 @@ class ListFilterDateRange extends ListFilterBase {
 	public function getFilterFields() {
 		$fields = parent::getFilterFields();
 		$fields->push(DateField::create('StartDate', _t('ListFilterDateRange.START_DATE', 'Start Date')));
-		$fields->push(DateField::create('EndDate', _t('ListFilterDateRange.END_DATE', 'End Date')));
+		$fields->push(DateField::create('EndDate', _t('ListFilterDateRange.END_DATE', 'End Date'), $this->getEndDateDefault()));
 		return $fields;
 	}
 
@@ -73,7 +76,7 @@ class ListFilterDateRange extends ListFilterBase {
 	 */
 	public function applyFilter(SS_List $list, array $data) {
 		$start = isset($data['StartDate']) ? $data['StartDate'] : null;
-		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
+		$end = isset($data['EndDate']) ? $data['EndDate'] : $this->getEndDateDefault();
 		if (!$start && !$end) {
 			return;
 		}
@@ -141,5 +144,9 @@ class ListFilterDateRange extends ListFilterBase {
 			}
 			return implode(',', $result);
 		}
+	}
+
+	public function getEndDateDefault() {
+		return $this->DefaultDaysToDisplay ? date('Y-m-d', strtotime("+{$this->DefaultDaysToDisplay} days")) : null;
 	}
 }

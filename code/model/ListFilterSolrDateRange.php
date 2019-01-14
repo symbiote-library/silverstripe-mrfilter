@@ -18,7 +18,7 @@ class ListFilterSolrDateRange extends ListFilterDateRange {
 	 */
 	public function applyFilter(SS_List $list, array $data) {
         $start = isset($data['StartDate']) ? $data['StartDate'] : null;
-		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
+		$end = isset($data['EndDate']) ? $data['EndDate'] : $this->getEndDateDefault();
         
 		if (!$start && !$end) {
 			return;

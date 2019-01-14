@@ -5,6 +5,7 @@
 if (class_exists('CalendarDateTime')) {
 
 class ListFilterCalendarEventDateRange extends ListFilterDateRange {
+
 	/**
 	 * Use 'StartDate' from CalendarDateTime class.
 	 *
@@ -74,7 +75,7 @@ class ListFilterCalendarEventDateRange extends ListFilterDateRange {
 	 */
 	public function applyFilter(SS_List $list, array $data) {
 		$start = isset($data['StartDate']) ? $data['StartDate'] : null;
-		$end = isset($data['EndDate']) ? $data['EndDate'] : null;
+		$end = isset($data['EndDate']) ? $data['EndDate'] : $this->getEndDateDefault();
 
 		// Get `CalendarDateTime` class used. Defaults to `CalendarDateTime`.
 		$class = $list->dataClass();
