@@ -17,11 +17,8 @@
 	});
 
 	function FormSubmit(e) {
-		var $form = $(this);
-		if (!$form.data('ajax')) {
-			return true;
-		}
-		e.preventDefault();
+		var $form = $(e.target);
+
 		if ($form.data('is-loading') === true) {
 			return;
 		}
@@ -51,6 +48,13 @@
 		for (var l = 0; l < loadingElements.length; ++l) {
 			$(loadingElements[l]).addClass(loadingClass);
 		}
+
+		// This happens here so the page looks like it's loading even when AJAX isn't being used.
+		if (!$form.data('ajax')) {
+			return true;
+		}
+		e.preventDefault();
+
 		jQuery.support.cors = true;
 		$form.data('is-loading', true);
 		jQuery.ajax({
@@ -224,10 +228,8 @@
 				}
 				$(it).change(FormFieldChange);
 			}
-			if ($form.data('ajax')) {
-				$form.on('submit', FormSubmit);
-			}
-			$form.on('ListFilterFormSubmit', FormSubmit);
+			$(document).on('submit', $form, FormSubmit);
+			$(document).on('ListFilterFormSubmit', $form, FormSubmit);
 
 			$form.data('listfilter-initiated', true);
 			$form.trigger('ListFilterFormInit');
