@@ -32,7 +32,7 @@
 					cacheAjaxURL[url] = false;
 					$.ajax({
 						type: 'GET',
-						url: url,
+						url: url + new URLSearchParams(window.location).get('search'),
 						async: true,
 						crossDomain: true,
 						headers: {

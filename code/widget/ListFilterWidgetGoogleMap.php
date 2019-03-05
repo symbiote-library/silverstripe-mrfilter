@@ -139,9 +139,8 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 
 		$list = $this->getList();
 		if (!$list) {
-			// NOTE(Jake): Ensures if any filters are applied with no user input, that they
-			//			   still get applied for map markers.
-			$list = $this->FilteredList(array());
+			// When filtering has been applied, fetch the filtered result set
+			$list = $this->FilteredList($this->getRequest()->getVars());
 			if (!$list) {
 				throw new Exception('No form or record configured against '.__CLASS__.'.');
 			}
@@ -289,6 +288,7 @@ class ListFilterWidgetGoogleMap extends ListFilterWidget {
 	 */
 	public function onBeforeRender() {
 		parent::onBeforeRender();
+		Requirements::javascript(ListFilterUtility::MODULE_DIR.'/javascript/thirdparty/url-search-params-polyfill.min.js');
 		Requirements::javascript(ListFilterUtility::MODULE_DIR.'/javascript/ListFilterWidgetGoogleMap.js');
 	}
 
