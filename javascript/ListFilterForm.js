@@ -1,22 +1,23 @@
-(function($){
+(function ($) {
 	"use strict";
 
 	var debug, debugLog;
 	debug = $('.js-listfilter-form').data('debug');
 	if (debug) {
-		debugLog = function(message) {
+		debugLog = function (message) {
 			console.log(message);
 			alert(message);
 		};
 	} else {
-		debugLog = function() {};
+		debugLog = function () { };
 	}
 
-	$(document).ready(function() {
+	$(document).ready(function () {
 		formsInit();
 	});
 
 	function FormSubmit(e) {
+
 		var $form = $(e.target);
 
 		if ($form.data('is-loading') === true) {
@@ -28,10 +29,10 @@
 		}
 
 		// Update listing areas specifically using the same 'data-listfilter-id'
-		var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+		var $relatedListing = $('.js-listfilter-listing[data-listfilter-id="' + $form.data('listfilter-id') + '"]');
 		// Update all listings in global scope (ie. without a 'data-listfilter-id' value)
 		var $globalListing = $('.js-listfilter-listing:not([data-listfilter-id])');
-		var $relatedWidget = $('.js-listfilter-widget[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+		var $relatedWidget = $('.js-listfilter-widget[data-listfilter-id="' + $form.data('listfilter-id') + '"]');
 		var $showingMessage = $('.js-listfilter-listing-showingmessage');
 
 		// Add class to signify its loading
@@ -41,13 +42,51 @@
 		if (loadingClass) {
 			loadingElements.push($form);
 			if ($relatedListing.length > 0) { loadingElements.push($relatedListing); }
-			if ($globalListing.length > 0)  { loadingElements.push($globalListing);  }
-			if ($relatedWidget.length > 0)  { loadingElements.push($relatedWidget);  }
+			if ($globalListing.length > 0) { loadingElements.push($globalListing); }
+			if ($relatedWidget.length > 0) { loadingElements.push($relatedWidget); }
 			if ($showingMessage.length > 0) { loadingElements.push($showingMessage); }
 		}
 		for (var l = 0; l < loadingElements.length; ++l) {
 			$(loadingElements[l]).addClass(loadingClass);
 		}
+
+		//Show an error if only either of start or end date is selected
+		var filterStartDate = null;
+		var filterEndDate = null;
+		var filterStartDateField = null;
+		var filterEndDateField = null;
+		var dateFormat = null;
+
+		var $inputs = $form.find('input');
+		$inputs.each(function () {
+			var $input = $(this);
+			var name = $input.attr('name');
+			$form.find('span.js-custom-error').remove();
+			if (name) {
+				if (name.indexOf('StartDate') != -1) {
+					filterStartDateField = $input;
+					filterStartDate = $input.val();
+					dateFormat = $input.data('isodateformat');
+				} else if (name.indexOf('EndDate') != -1) {
+					filterEndDate = $input.val();
+					filterEndDateField = $input;
+					if (!dateFormat) {
+						dateFormat = $input.data('isodateformat');
+					}
+				}
+			}
+		});
+
+		if (filterStartDate && !filterEndDate) {
+			// filterEndDateField;
+			filterEndDateField.addClass('error').after('<span class="message error js-custom-error">Please select To date</span>');
+			return false;
+		} else if (!filterStartDate && filterEndDate) {
+			// filterStartDateField.addClass('error');
+			filterStartDateField.addClass('error').after('<span class="message error js-custom-error">Please select From date</span>');
+			return false;
+		}
+		//End -- Show an error if only either of start or end date is selected
 
 		// This happens here so the page looks like it's loading even when AJAX isn't being used.
 		if (!$form.data('ajax')) {
@@ -66,7 +105,7 @@
 				'X-Requested-With': 'XMLHttpRequest'
 			},
 			data: $form.serialize()
-		}).done(function(data, textStatus, jqXHR) {
+		}).done(function (data, textStatus, jqXHR) {
 			$form.data('is-loading', false);
 			var template, filterGroups, fields;
 			if (typeof data === 'object') {
@@ -104,6 +143,7 @@
 				var form = $dataForm[0];
 				for (var fieldIndex = 0; fieldIndex < form.elements.length; ++fieldIndex) {
 					var dataField = form.elements[fieldIndex];
+
 					if (dataField.tagName === 'FIELDSET' || dataField.tagName === 'BUTTON') {
 						continue;
 					}
@@ -113,7 +153,7 @@
 					// Handle when <span class="message"> is under FormField.ss template
 					$dataErrorMessage = $(dataFieldParent.childNodes).filter(errorMessageQuery).first();
 					if ($dataErrorMessage.length > 0) {
-						$formField = $form.find('[name="'+dataField.name+'"]').first();
+						$formField = $form.find('[name="' + dataField.name + '"]').first();
 						if ($formField.length > 0) {
 							$formField.siblings().find(errorMessageQuery).remove();
 							if ($(dataField).nextAll(errorMessageQuery).length > 0) {
@@ -126,7 +166,7 @@
 					// Handle when <span class="message"> is under FieldHolder.ss template
 					$dataErrorMessage = $(dataFieldParent.parentNode.childNodes).filter(errorMessageQuery).first();
 					if ($dataErrorMessage.length > 0) {
-						$formField = $form.find('[name="'+dataField.name+'"]').first();
+						$formField = $form.find('[name="' + dataField.name + '"]').first();
 						if ($formField.length > 0) {
 							var $middleColumn = $formField.parent();
 							var $holder = $middleColumn.parent();
@@ -154,9 +194,9 @@
 						}
 						var value = data[field];
 						var selector = '.js-listfilter-listing-' + field.toLowerCase();
-						var $relatedListingCount = $(selector+'[data-listfilter-id="'+$form.data('listfilter-id')+'"]');
+						var $relatedListingCount = $(selector + '[data-listfilter-id="' + $form.data('listfilter-id') + '"]');
 						$relatedListingCount.html(value);
-						var $globalListingCount = $(selector+':not([data-listfilter-id])');
+						var $globalListingCount = $(selector + ':not([data-listfilter-id])');
 						$globalListingCount.html(value);
 					}
 				}
@@ -166,27 +206,27 @@
 				$form.trigger('ListFilterFormUpdate');
 			}
 			$form.trigger('ListFilterAJAXDone', [data, textStatus, jqXHR]);
-		}).fail(function(x, e, exception) {
+		}).fail(function (x, e, exception) {
 			$form.data('is-loading', false);
 			$form.trigger('ListFilterAJAXFail', [x, e, exception]);
 			if (debug) {
-				if(x.status === 0){
+				if (x.status === 0) {
 					alert('You are offline!!\n Please Check Your Network.');
-				} else if(x.status == 404){
+				} else if (x.status == 404) {
 					alert('Requested URL not found.');
-				} else if(x.status == 500){
+				} else if (x.status == 500) {
 					//$result.html(x.responseText);
 					alert('Internal Server Error.');
-				} else if(e == 'parsererror'){
+				} else if (e == 'parsererror') {
 					//$result.html(x.responseText);
 					alert('Error.\nParsing JSON Request failed.');
-				} else if(e == 'timeout'){
+				} else if (e == 'timeout') {
 					alert('Request Time out.');
 				} else {
-					alert('Unknown Error.\n'+x.responseText);
+					alert('Unknown Error.\n' + x.responseText);
 				}
 			}
-		}).complete(function(dataOrJqXHR, textStatus, jqXHROrErrorThrown) {
+		}).complete(function (dataOrJqXHR, textStatus, jqXHROrErrorThrown) {
 			$form.data('is-loading', false);
 			for (var l = 0; l < loadingElements.length; ++l) {
 				$(loadingElements[l]).removeClass(loadingClass);
@@ -200,22 +240,38 @@
 		var $form = $(this.form);
 		if (!$filterGroupHolder.length) {
 			debugLog("Missing .js-listfilter-filter as parent element. ListFilterBase_holder must have been modified"
-			+ " incorrectly.\n\nOmit the 'name' attribute or add class '.js-listfilter-ignore' if its unrelated to"
-			+ " the ListFilterForm.\n\nThis is also known to occur when CompositeField_holder.ss is put into an"
-			+ " /Includes/ folder, rather than /forms/. Old versions of Unclecheese's Display Logic module will do this"
-			+ " and break this module.");
+				+ " incorrectly.\n\nOmit the 'name' attribute or add class '.js-listfilter-ignore' if its unrelated to"
+				+ " the ListFilterForm.\n\nThis is also known to occur when CompositeField_holder.ss is put into an"
+				+ " /Includes/ folder, rather than /forms/. Old versions of Unclecheese's Display Logic module will do this"
+				+ " and break this module.");
 			return;
 		}
 		$form.trigger('ListFilterFormUpdate');
 	}
 
 	function formsInit() {
-		$('.js-listfilter-form').each(function() {
+		$('.js-listfilter-form').each(function () {
 			var $form = $(this);
+
+			// Remove span.js-custom-error on blur
+			var $inputs = $form.find('input');
+			$inputs.each(function () {
+				var $input = $(this);
+				var name = $input.attr('name');
+				if (name) {
+					if (name.indexOf('StartDate') != -1 || name.indexOf('EndDate') != -1) {
+						$input.on('blur', function () {
+							$input.siblings('span.js-custom-error').remove();
+						})
+					}
+				}
+			});
+			//End - Remove span.js-custom-error on blur
+
 			if ($form.data('listfilter-initiated')) {
 				return;
 			}
-			var $widget = $('.js-listfilter-widget[data-listfilter-id="'+$(this).data('listfilter-id')+'"]');
+			var $widget = $('.js-listfilter-widget[data-listfilter-id="' + $(this).data('listfilter-id') + '"]');
 			if ($widget.length) {
 				$form.data('widget', $widget);
 				$widget.data('form', $form);
@@ -236,7 +292,7 @@
 		});
 	}
 
-	$('.js-listfilter-widget').bind('ListFilterWidgetInit', function(e) {
+	$('.js-listfilter-widget').bind('ListFilterWidgetInit', function (e) {
 		var $form = $(this).data('form');
 		if (typeof $form === 'undefined' || !$form || !$form.length) {
 			return;
@@ -244,7 +300,7 @@
 		$form.trigger('ListFilterFormUpdate');
 	});
 
-	$('.js-listfilter-form').bind('ListFilterFormUpdate', function(e) {
+	$('.js-listfilter-form').bind('ListFilterFormUpdate', function (e) {
 		var $form = $(this);
 		var $widget = $form.data('widget');
 		if (typeof $widget === 'undefined' || !$widget || !$widget.length || !$widget.is(':visible')) {
@@ -259,7 +315,7 @@
 		}
 		var backendFilters = $form.data('listfilter-backend');
 		var recordsInFilterGroups = {};
-		$(this).find('.js-listfilter-filter').each(function() {
+		$(this).find('.js-listfilter-filter').each(function () {
 			var fieldGroupCallback = $(this).data('fieldgroup-callback');
 			if (fieldGroupCallback) {
 				var fieldGroupID = $(this).data('fieldgroup-id');
@@ -282,7 +338,7 @@
 			return;
 		}
 
-		// Do 'AND' logic across filter groups. 
+		// Do 'AND' logic across filter groups.
 		// ie. Ensure a record has tags AND fits into the date range.
 		var recordsThatMatchFilter = [];
 		var recordsMap = null;
